@@ -1,0 +1,106 @@
+/* src/app/globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ✅ CSS VARIABLES — Theme-Aware */
+:root {
+  /* Light Theme */
+  --text-primary: #1a1f2c;
+  --text-secondary: #6b7280;
+  --text-tertiary: #9ca3af;
+  --surface-bg: #fcfdfe;
+  --surface-card: #ffffff;
+  --surface-hover: #f8fafc;
+  --border-color: #e5e7eb;
+}
+
+.dark {
+  /* Dark Theme */
+  --text-primary: #e6e9f4;
+  --text-secondary: #8a91a3;
+  --text-tertiary: #4b5563;
+  --surface-bg: #0c0f1d;
+  --surface-card: #141828;
+  --surface-hover: #1b1f32;
+  --border-color: #23293d;
+}
+
+/* ✅ APPLY VARIABLES GLOBALLY */
+html {
+  background-color: var(--surface-bg);
+  color: var(--text-primary);
+  scroll-behavior: smooth;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ✅ TEXT CLASSES */
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-tertiary { color: var(--text-tertiary); }
+
+/* ✅ SURFACE CLASSES */
+.bg-surface-bg { background-color: var(--surface-bg); }
+.bg-surface-card { background-color: var(--surface-card); }
+.bg-surface-hover { background-color: var(--surface-hover); }
+
+/* ✅ BORDER CLASS */
+.border-default { border-color: var(--border-color); }
+
+/* ✅ GLASSMORPHISM — Using Tailwind's white/5 for safety */
+.glass {
+  @apply bg-white/5 dark:bg-white/5 backdrop-blur-xl border border-white/10;
+}
+
+.glass-hover {
+  @apply hover:bg-white/10 dark:hover:bg-white/10 transition-all duration-300;
+}
+
+/* ✅ CONTAINER */
+.container {
+  @apply mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl;
+}
+
+/* ✅ BUTTON VARIANTS */
+.btn-primary {
+  @apply bg-gradient-to-r from-accent-cyan to-accent-purple text-white font-medium rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all;
+}
+
+.btn-secondary {
+  @apply bg-white/10 dark:bg-white/5 text-white border border-white/20 hover:bg-white/20 hover:border-white/40 font-medium rounded-xl transition-all;
+}
+
+/* ✅ CARD VARIANTS */
+.card-modern {
+  @apply glass glass-hover rounded-2xl p-6 transition-all duration-500 hover:-translate-y-1 hover:shadow-glass-hover;
+}
+
+.card-elevated {
+  @apply glass glass-hover rounded-3xl p-8 border border-white/20 hover:border-white/40 transition-all duration-500 hover:-translate-y-2 hover:shadow-glass-lg;
+}
+
+/* ✅ SECTION SPACING */
+.section {
+  @apply py-20 lg:py-32;
+}
+
+.section-sm {
+  @apply py-12 lg:py-20;
+}
+
+/* ✅ CUSTOM SCROLLBAR (Optional) */
+::-webkit-scrollbar {
+  @apply w-2 h-2;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-white/20 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-white/40;
+}
