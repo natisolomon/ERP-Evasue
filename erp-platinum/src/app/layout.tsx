@@ -4,7 +4,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/layout/ThemeProvider';
 import { ModalProvider } from '@/components/layout/ModalProvider';
-import { ClientLayoutWrapper } from '@/components/layout/ClientLayoutWrapper';
+import { PublicLayoutWrapper } from '@/components/layout/PublicLayoutWrapper';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -24,7 +24,7 @@ export default function RootLayout({
         <ThemeProvider>
           <ModalProvider>
             <div className="flex min-h-screen flex-col">
-              <ClientLayoutWrapper>{children}</ClientLayoutWrapper>
+              <PublicLayoutWrapper>{children}</PublicLayoutWrapper>
             </div>
           </ModalProvider>
         </ThemeProvider>
