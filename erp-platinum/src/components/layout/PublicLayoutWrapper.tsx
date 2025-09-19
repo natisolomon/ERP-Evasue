@@ -12,9 +12,11 @@ export function PublicLayoutWrapper({
 }) {
   const pathname = usePathname();
   const isInventoryPage = pathname.startsWith('/inventory');
+  const isFinancePage = pathname.startsWith('/finance'); // ✅ Add this line
+  const isPortalPage = isInventoryPage || isFinancePage; // ✅ Update this line
 
-  if (isInventoryPage) {
-    // Don't wrap with Header/Footer for inventory pages
+  if (isPortalPage) {
+    // Don't wrap with Header/Footer for portal pages
     return <>{children}</>;
   }
 
