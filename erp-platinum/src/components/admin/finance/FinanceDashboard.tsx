@@ -8,6 +8,8 @@ import { FinanceChart } from './FinanceChart';
 import { FinanceTable } from './FinanceTable';
 import { FinanceFilters } from './FinanceFilters';
 import { mockTransactions, expenseCategories, revenueTrend, expenseTrend } from '@/lib/financeConstant';
+import { useModal } from '@/components/layout/ModalProvider'; // 👈 Import ModalProvider
+import { AddTransactionModal } from './financeModal/AddTransactionModal'; // 👈 Import new modal
 
 export function FinanceDashboard() {
   const [filters, setFilters] = useState({
@@ -17,13 +19,34 @@ export function FinanceDashboard() {
     search: '',
   });
 
-  const filteredTransactions = mockTransactions.filter(txn => {
+  // 👇 State for transactions (now dynamic)
+  const [transactions, setTransactions] = useState(mockTransactions);
+
+  const filteredTransactions = transactions.filter(txn => {
     if (filters.type !== 'all' && txn.type !== filters.type) return false;
     if (filters.status !== 'all' && txn.status !== filters.status) return false;
     if (filters.category !== 'all' && txn.category !== filters.category) return false;
     if (filters.search && !txn.description.toLowerCase().includes(filters.search.toLowerCase())) return false;
     return true;
   });
+
+  // 👇 Modal hook
+  const { openModal, closeModal } = useModal();
+
+  // 👇 Handler for adding new transaction
+  const handleAddTransaction = (newTransaction: any) => {
+    setTransactions(prev => [newTransaction, ...prev]);
+  };
+
+  // 👇 Open Add Transaction Modal
+  const handleOpenAddModal = () => {
+    openModal(
+      <AddTransactionModal
+        onClose={closeModal}
+        onAdd={handleAddTransaction}
+      />
+    );
+  };
 
   return (
     <div>
@@ -39,28 +62,41 @@ export function FinanceDashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
         <FinanceStatCard
           title="Monthly Revenue"
-          value="$48,200"
+          value={`$${transactions
+            .filter(t => t.type === 'income' && t.status === 'completed')
+            .reduce((sum, t) => sum + t.amount, 0)
+            .toLocaleString()}`}
           trend="+18.2%"
           icon="DollarSign"
           variant="cyan"
         />
         <FinanceStatCard
           title="Monthly Expenses"
-          value="$28,400"
+          value={`$${transactions
+            .filter(t => t.type === 'expense' && t.status === 'completed')
+            .reduce((sum, t) => sum + t.amount, 0)
+            .toLocaleString()}`}
           trend="+5.7%"
           icon="TrendingDown"
           variant="pink"
         />
         <FinanceStatCard
           title="Profit Margin"
-          value="41.2%"
+          value={`${(
+            (transactions.filter(t => t.type === 'income' && t.status === 'completed').reduce((sum, t) => sum + t.amount, 0) -
+            transactions.filter(t => t.type === 'expense' && t.status === 'completed').reduce((sum, t) => sum + t.amount, 0)) /
+            transactions.filter(t => t.type === 'income' && t.status === 'completed').reduce((sum, t) => sum + t.amount, 1)
+          * 100).toFixed(1)}%`}
           trend="+3.1%"
           icon="BarChart3"
           variant="green"
         />
         <FinanceStatCard
           title="Pending Invoices"
-          value="$12,800"
+          value={`$${transactions
+            .filter(t => t.status === 'pending')
+            .reduce((sum, t) => sum + t.amount, 0)
+            .toLocaleString()}`}
           trend="+2"
           icon="FileText"
           variant="amber"
@@ -119,6 +155,7 @@ export function FinanceDashboard() {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            onClick={handleOpenAddModal} // 👈 Connect to modal
             className="px-4 py-2 bg-gradient-to-r from-accent-cyan to-accent-purple text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all"
           >
             + Add Transaction
