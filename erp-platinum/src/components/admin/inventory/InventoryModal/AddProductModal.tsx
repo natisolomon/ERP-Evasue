@@ -1,27 +1,26 @@
-// src/components/admin/inventory/InventoryModal/EditProductModal.tsx
+// src/components/admin/inventory/InventoryModal/AddProductModal.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
-import { Product } from '@/lib/inventoryData';
+import { X, Package } from 'lucide-react';
 
-interface EditProductModalProps {
-  product: Product;
+interface AddProductModalProps {
   onClose: () => void;
+  onAdd?: (product: any) => void; // Optional callback for parent component
 }
 
-export function EditProductModal({ product, onClose }: EditProductModalProps) {
+export function AddProductModal({ onClose, onAdd }: AddProductModalProps) {
   const [formData, setFormData] = useState({
-    name: product.name,
-    sku: product.sku,
-    category: product.category,
-    price: product.price.toString(),
-    cost: product.cost.toString(),
-    stock: product.stock.toString(),
-    reorderLevel: product.reorderLevel.toString(),
-    supplier: product.supplier,
-    location: product.location,
+    name: '',
+    sku: '',
+    category: '',
+    price: '',
+    cost: '',
+    stock: '',
+    reorderLevel: '',
+    supplier: '',
+    location: '',
   });
 
   useEffect(() => {
@@ -34,12 +33,29 @@ export function EditProductModal({ product, onClose }: EditProductModalProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Update product:', { ...formData, 
+
+    // Basic validation
+    if (!formData.name || !formData.sku || !formData.category) {
+      alert('Please fill in required fields');
+      return;
+    }
+
+    const newProduct = {
+      id: Date.now().toString(), // Temporary ID
+      ...formData,
       price: parseFloat(formData.price),
       cost: parseFloat(formData.cost),
       stock: parseInt(formData.stock),
-      reorderLevel: parseInt(formData.reorderLevel)
-    });
+      reorderLevel: parseInt(formData.reorderLevel),
+      status: parseInt(formData.stock) <= parseInt(formData.reorderLevel) ? 'low_stock' : 'in_stock',
+      lastUpdated: new Date().toISOString().split('T')[0],
+    };
+
+    if (onAdd) {
+      onAdd(newProduct);
+    }
+
+    console.log('Add product:', newProduct);
     onClose();
   };
 
@@ -68,43 +84,49 @@ export function EditProductModal({ product, onClose }: EditProductModalProps) {
           </button>
 
           <div className="text-center mb-6">
+            <div className="w-16 h-16 bg-gradient-to-br from-accent-cyan to-accent-purple rounded-full flex items-center justify-center mx-auto mb-4">
+              <Package size={32} className="text-white" />
+            </div>
             <h2 className="text-3xl font-bold bg-gradient-to-r from-accent-cyan to-accent-purple bg-clip-text text-transparent">
-              Edit Product
+              Add New Product
             </h2>
-            <p className="text-secondary mt-2">Update the details for this product</p>
+            <p className="text-secondary mt-2">Fill in the details for your new product</p>
           </div>
 
-          {/* 👇 Scrollable Content Area */}
+          {/* Scrollable Content */}
           <div className="flex-1 overflow-y-auto pr-2">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium mb-2 text-secondary">Product Name</label>
+                  <label className="block text-sm font-medium mb-2 text-secondary">Product Name *</label>
                   <input
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
+                    placeholder="e.g. Wireless Headphones"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2 text-secondary">SKU</label>
+                  <label className="block text-sm font-medium mb-2 text-secondary">SKU *</label>
                   <input
                     type="text"
                     value={formData.sku}
                     onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
                     className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
+                    placeholder="e.g. WH-2024-BLK"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2 text-secondary">Category</label>
+                  <label className="block text-sm font-medium mb-2 text-secondary">Category *</label>
                   <input
                     type="text"
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                     className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
+                    placeholder="e.g. Electronics, Apparel"
                     required
                   />
                 </div>
@@ -115,7 +137,7 @@ export function EditProductModal({ product, onClose }: EditProductModalProps) {
                     value={formData.supplier}
                     onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
                     className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
-                    required
+                    placeholder="e.g. TechSupply Inc."
                   />
                 </div>
                 <div>
@@ -125,7 +147,7 @@ export function EditProductModal({ product, onClose }: EditProductModalProps) {
                     value={formData.location}
                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                     className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
-                    required
+                    placeholder="e.g. Warehouse A, Shelf 12"
                   />
                 </div>
                 <div>
@@ -136,7 +158,7 @@ export function EditProductModal({ product, onClose }: EditProductModalProps) {
                     value={formData.price}
                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                     className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
-                    required
+                    placeholder="0.00"
                   />
                 </div>
                 <div>
@@ -147,17 +169,17 @@ export function EditProductModal({ product, onClose }: EditProductModalProps) {
                     value={formData.cost}
                     onChange={(e) => setFormData({ ...formData, cost: e.target.value })}
                     className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
-                    required
+                    placeholder="0.00"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2 text-secondary">Current Stock</label>
+                  <label className="block text-sm font-medium mb-2 text-secondary">Initial Stock</label>
                   <input
                     type="number"
                     value={formData.stock}
                     onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
                     className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
-                    required
+                    placeholder="e.g. 100"
                   />
                 </div>
                 <div>
@@ -167,14 +189,14 @@ export function EditProductModal({ product, onClose }: EditProductModalProps) {
                     value={formData.reorderLevel}
                     onChange={(e) => setFormData({ ...formData, reorderLevel: e.target.value })}
                     className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
-                    required
+                    placeholder="e.g. 20"
                   />
                 </div>
               </div>
             </form>
           </div>
 
-          {/* 👇 Fixed Footer */}
+          {/* Fixed Footer */}
           <div className="flex flex-col sm:flex-row gap-4 pt-6 mt-6">
             <motion.button
               whileHover={{ scale: 1.03 }}
@@ -183,7 +205,7 @@ export function EditProductModal({ product, onClose }: EditProductModalProps) {
               onClick={handleSubmit}
               className="flex-1 px-6 py-3 bg-gradient-to-r from-accent-cyan to-accent-purple text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all"
             >
-              Update Product
+              Add Product
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.03 }}

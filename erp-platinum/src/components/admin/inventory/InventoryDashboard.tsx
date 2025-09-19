@@ -7,6 +7,8 @@ import { InventoryStatCard } from './InventoryStatCard';
 import { InventoryChart } from './InventoryChart';
 import { InventoryTable } from './InventoryTable';
 import { InventoryFilters } from './InventoryFilters';
+import { AddProductModal } from './InventoryModal/AddProductModal';
+import { useModal } from '@/components/layout/ModalProvider'; // 👈 Import ModalProvider
 import { mockProducts, categoryDistribution, stockTrend, valueTrend } from '@/lib/inventoryData';
 
 export function InventoryDashboard() {
@@ -17,13 +19,40 @@ export function InventoryDashboard() {
     search: '',
   });
 
-  const filteredProducts = mockProducts.filter(product => {
+  // 👇 State for products (instead of just mock)
+  const [products, setProducts] = useState(mockProducts);
+
+  const filteredProducts = products.filter(product => {
     if (filters.category !== 'all' && product.category !== filters.category) return false;
     if (filters.status !== 'all' && product.status !== filters.status) return false;
     if (filters.location !== 'all' && !product.location.includes(filters.location)) return false;
     if (filters.search && !product.name.toLowerCase().includes(filters.search.toLowerCase())) return false;
     return true;
   });
+
+  // 👇 Modal hook
+  const { openModal, closeModal } = useModal();
+
+  // 👇 Handler for adding new product
+  const handleAddProduct = (newProduct: any) => {
+    setProducts(prev => [newProduct, ...prev]); // Add to top of list
+  };
+
+  // 👇 Open Add Product Modal
+  const handleOpenAddModal = () => {
+    openModal(
+      <AddProductModal
+        onClose={closeModal}
+        onAdd={handleAddProduct}
+      />
+    );
+  };
+
+  // 👇 Calculate dynamic stats
+  const totalProducts = products.length;
+  const lowStockItems = products.filter(p => p.status === 'low_stock').length;
+  const totalValue = products.reduce((sum, p) => sum + (p.price * p.stock), 0);
+  const avgTurnover = products.length > 0 ? (totalValue / products.length / 1000).toFixed(1) : '0';
 
   return (
     <div>
@@ -39,28 +68,28 @@ export function InventoryDashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
         <InventoryStatCard
           title="Total Products"
-          value="8,420"
+          value={totalProducts.toLocaleString()}
           trend="+142"
           icon="Boxes"
           variant="cyan"
         />
         <InventoryStatCard
           title="Low Stock Items"
-          value="24"
+          value={lowStockItems.toString()}
           trend="+3"
           icon="AlertTriangle"
           variant="amber"
         />
         <InventoryStatCard
           title="Total Value"
-          value="$482K"
+          value={`$${(totalValue / 1000).toFixed(0)}K`}
           trend="+18.2%"
           icon="DollarSign"
           variant="green"
         />
         <InventoryStatCard
           title="Avg. Turnover"
-          value="4.2x"
+          value={`${avgTurnover}x`}
           trend="+0.8x"
           icon="RefreshCw"
           variant="purple"
@@ -119,6 +148,7 @@ export function InventoryDashboard() {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            onClick={handleOpenAddModal} // 👈 Connect to modal
             className="px-4 py-2 bg-gradient-to-r from-accent-cyan to-accent-purple text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all"
           >
             + Add Product
