@@ -15,6 +15,14 @@
   --border-color: #e5e7eb;
 }
 
+.modal-backdrop {
+  @apply fixed inset-0 z-50;
+}
+
+.modal-content {
+  @apply relative z-50 mx-auto;
+}
+
 .dark {
   /* Dark Theme */
   --text-primary: #e6e9f4;
@@ -32,6 +40,12 @@ html {
   color: var(--text-primary);
   scroll-behavior: smooth;
   transition: background-color 0.3s ease, color 0.3s ease;
+}
+.__next-error-boundary, 
+#__next, 
+body, 
+html {
+  @apply overflow-visible;
 }
 
 /* ✅ TEXT CLASSES */
