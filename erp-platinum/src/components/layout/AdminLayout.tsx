@@ -42,13 +42,12 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         <AdminSidebar />
       </aside>
 
-      {/* Main Content */}
-      <div className="lg:ml-64 flex flex-col min-h-screen">
+      {/* Main Content - ✅ ADD overflow-visible */}
+      <div className="lg:ml-64 flex flex-col min-h-screen overflow-visible">
         <AdminHeader toggleSidebar={toggleSidebar} />
-        <main className="flex-1 p-6 lg:p-10">
+        <main className="flex-1 p-6 lg:p-10 overflow-visible">
           {children}
         </main>
-        {/* ❌ NO FOOTER HERE */}
       </div>
     </div>
   );

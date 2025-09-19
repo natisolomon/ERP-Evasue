@@ -1,7 +1,7 @@
 // src/components/admin/hr/HRModal/ViewEmployeeModal.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, User, Mail, Phone, Briefcase, Calendar, DollarSign, Star, Users } from 'lucide-react';
 import { Employee } from '@/lib/hrData';
@@ -35,6 +35,11 @@ export function ViewEmployeeModal({ employee, onClose }: ViewEmployeeModalProps)
           exit={{ scale: 0.92, y: 20 }}
           className="bg-surface-card rounded-3xl p-6 md:p-8 w-full max-w-2xl lg:max-w-3xl shadow-2xl border border-white/10 relative"
           onClick={(e) => e.stopPropagation()}
+          style={{
+            maxHeight: '90vh', // ✅ Limit height
+            overflowY: 'auto', // ✅ Enable vertical scroll
+            WebkitOverflowScrolling: 'touch', // ✅ Smooth scrolling on iOS
+          }}
         >
           <button
             onClick={onClose}

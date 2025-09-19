@@ -8,6 +8,7 @@ import { HRChart } from './HRChart';
 import { HREmployeeTable } from './HREmployeeTable';
 import { HRFilters } from './HRFilters';
 import { mockEmployees, departmentDistribution, headcountTrend, salaryTrend } from '@/lib/hrData';
+import { AddEmployeeModal } from './HRModal/AddEmployeeModal'; // 👈 Import the modal
 
 export function HRDashboard() {
   const [filters, setFilters] = useState({
@@ -17,13 +18,24 @@ export function HRDashboard() {
     search: '',
   });
 
-  const filteredEmployees = mockEmployees.filter(employee => {
+  // 👇 State to control modal visibility
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+  // 👇 State to hold employees (now local state instead of just mock)
+  const [employees, setEmployees] = useState(mockEmployees);
+
+  const filteredEmployees = employees.filter(employee => { // 👈 Use local state
     if (filters.department !== 'all' && employee.department !== filters.department) return false;
     if (filters.status !== 'all' && employee.status !== filters.status) return false;
     if (filters.position !== 'all' && !employee.position.toLowerCase().includes(filters.position.toLowerCase())) return false;
     if (filters.search && !employee.firstName.toLowerCase().includes(filters.search.toLowerCase()) && !employee.lastName.toLowerCase().includes(filters.search.toLowerCase())) return false;
     return true;
   });
+
+  // 👇 Handler to add new employee
+  const handleAddEmployee = (newEmployee: any) => {
+    setEmployees(prev => [newEmployee, ...prev]); // Add to top of list
+  };
 
   return (
     <div>
@@ -39,28 +51,28 @@ export function HRDashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
         <HRStatCard
           title="Total Employees"
-          value="260"
+          value={employees.length.toString()} // 👈 Dynamic count
           trend="+15"
           icon="Users"
           variant="cyan"
         />
         <HRStatCard
           title="Active Employees"
-          value="245"
+          value={employees.filter(e => e.status === 'active').length.toString()} // 👈 Dynamic
           trend="+12"
           icon="CheckCircle"
           variant="green"
         />
         <HRStatCard
           title="Avg. Salary"
-          value="$98,500"
+          value={`$${Math.round(employees.reduce((sum, e) => sum + e.salary, 0) / employees.length).toLocaleString()}`} // 👈 Dynamic
           trend="+5.2%"
           icon="DollarSign"
           variant="purple"
         />
         <HRStatCard
           title="On Leave"
-          value="15"
+          value={employees.filter(e => e.status === 'on_leave').length.toString()} // 👈 Dynamic
           trend="+3"
           icon="Coffee"
           variant="amber"
@@ -79,7 +91,6 @@ export function HRDashboard() {
             ]}
             height={300}
           />
-          
         </div>
 
         {/* Department Distribution */}
@@ -120,6 +131,7 @@ export function HRDashboard() {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            onClick={() => setIsAddModalOpen(true)} // 👈 Open modal
             className="px-4 py-2 bg-gradient-to-r from-accent-cyan to-accent-purple text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all"
           >
             + Add Employee
@@ -127,6 +139,14 @@ export function HRDashboard() {
         </div>
         <HREmployeeTable employees={filteredEmployees} />
       </div>
+
+      {/* 👇 Render Add Employee Modal */}
+      {isAddModalOpen && (
+  <AddEmployeeModal
+    onClose={() => setIsAddModalOpen(false)}
+    onAdd={handleAddEmployee}
+  />
+)}
     </div>
   );
 }

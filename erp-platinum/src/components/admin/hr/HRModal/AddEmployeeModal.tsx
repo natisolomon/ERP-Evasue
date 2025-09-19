@@ -1,30 +1,29 @@
-// src/components/admin/hr/HRModal/EditEmployeeModal.tsx
+// src/components/admin/hr/HRModal/AddEmployeeModal.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
-import { Employee } from '@/lib/hrData';
 
-interface EditEmployeeModalProps {
-  employee: Employee;
+interface AddEmployeeModalProps {
   onClose: () => void;
+  onAdd: (employee: any) => void; // Replace `any` with Employee type later
 }
 
-export function EditEmployeeModal({ employee, onClose }: EditEmployeeModalProps) {
+export function AddEmployeeModal({ onClose, onAdd }: AddEmployeeModalProps) {
   const [formData, setFormData] = useState({
-    firstName: employee.firstName,
-    lastName: employee.lastName,
-    email: employee.email,
-    phone: employee.phone,
-    department: employee.department,
-    position: employee.position,
-    hireDate: employee.hireDate,
-    salary: employee.salary.toString(),
-    status: employee.status,
-    performanceRating: employee.performanceRating.toString(),
-    lastReviewDate: employee.lastReviewDate,
-    manager: employee.manager,
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    department: '',
+    position: '',
+    hireDate: new Date().toISOString().split('T')[0],
+    salary: '',
+    status: 'active' as 'active' | 'inactive' | 'on_leave',
+    performanceRating: '3',
+    lastReviewDate: new Date().toISOString().split('T')[0],
+    manager: '',
   });
 
   useEffect(() => {
@@ -37,7 +36,21 @@ export function EditEmployeeModal({ employee, onClose }: EditEmployeeModalProps)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Update employee:', { ...formData, salary: parseFloat(formData.salary), performanceRating: parseFloat(formData.performanceRating) });
+    
+    if (!formData.firstName || !formData.lastName || !formData.email) {
+      alert('Please fill in required fields');
+      return;
+    }
+
+    const newEmployee = {
+      ...formData,
+      id: Date.now().toString(),
+      salary: parseFloat(formData.salary),
+      performanceRating: parseFloat(formData.performanceRating),
+      avatar: `https://ui-avatars.com/api/?name=${formData.firstName}+${formData.lastName}&background=random`,
+    };
+
+    onAdd(newEmployee);
     onClose();
   };
 
@@ -67,17 +80,16 @@ export function EditEmployeeModal({ employee, onClose }: EditEmployeeModalProps)
 
           <div className="text-center mb-6">
             <h2 className="text-3xl font-bold bg-gradient-to-r from-accent-cyan to-accent-purple bg-clip-text text-transparent">
-              Edit Employee
+              Add New Employee
             </h2>
-            <p className="text-secondary mt-2">Update the details for {employee.firstName} {employee.lastName}</p>
+            <p className="text-secondary mt-2">Fill in the details below to add a new team member</p>
           </div>
 
-          {/* Scrollable content area */}
           <div className="flex-1 overflow-y-auto pr-2">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium mb-2 text-secondary">First Name</label>
+                  <label className="block text-sm font-medium mb-2 text-secondary">First Name *</label>
                   <input
                     type="text"
                     value={formData.firstName}
@@ -87,7 +99,7 @@ export function EditEmployeeModal({ employee, onClose }: EditEmployeeModalProps)
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2 text-secondary">Last Name</label>
+                  <label className="block text-sm font-medium mb-2 text-secondary">Last Name *</label>
                   <input
                     type="text"
                     value={formData.lastName}
@@ -97,7 +109,7 @@ export function EditEmployeeModal({ employee, onClose }: EditEmployeeModalProps)
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2 text-secondary">Email</label>
+                  <label className="block text-sm font-medium mb-2 text-secondary">Email *</label>
                   <input
                     type="email"
                     value={formData.email}
@@ -113,7 +125,6 @@ export function EditEmployeeModal({ employee, onClose }: EditEmployeeModalProps)
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
-                    required
                   />
                 </div>
                 <div>
@@ -123,7 +134,6 @@ export function EditEmployeeModal({ employee, onClose }: EditEmployeeModalProps)
                     value={formData.department}
                     onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                     className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
-                    required
                   />
                 </div>
                 <div>
@@ -133,7 +143,6 @@ export function EditEmployeeModal({ employee, onClose }: EditEmployeeModalProps)
                     value={formData.position}
                     onChange={(e) => setFormData({ ...formData, position: e.target.value })}
                     className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
-                    required
                   />
                 </div>
                 <div>
@@ -143,7 +152,6 @@ export function EditEmployeeModal({ employee, onClose }: EditEmployeeModalProps)
                     value={formData.hireDate}
                     onChange={(e) => setFormData({ ...formData, hireDate: e.target.value })}
                     className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
-                    required
                   />
                 </div>
                 <div>
@@ -153,7 +161,6 @@ export function EditEmployeeModal({ employee, onClose }: EditEmployeeModalProps)
                     value={formData.salary}
                     onChange={(e) => setFormData({ ...formData, salary: e.target.value })}
                     className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
-                    required
                   />
                 </div>
                 <div>
@@ -162,7 +169,6 @@ export function EditEmployeeModal({ employee, onClose }: EditEmployeeModalProps)
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value as 'active' | 'inactive' | 'on_leave' })}
                     className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
-                    required
                   >
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
@@ -179,7 +185,6 @@ export function EditEmployeeModal({ employee, onClose }: EditEmployeeModalProps)
                     value={formData.performanceRating}
                     onChange={(e) => setFormData({ ...formData, performanceRating: e.target.value })}
                     className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
-                    required
                   />
                 </div>
                 <div>
@@ -189,7 +194,6 @@ export function EditEmployeeModal({ employee, onClose }: EditEmployeeModalProps)
                     value={formData.lastReviewDate}
                     onChange={(e) => setFormData({ ...formData, lastReviewDate: e.target.value })}
                     className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
-                    required
                   />
                 </div>
                 <div>
@@ -199,14 +203,12 @@ export function EditEmployeeModal({ employee, onClose }: EditEmployeeModalProps)
                     value={formData.manager}
                     onChange={(e) => setFormData({ ...formData, manager: e.target.value })}
                     className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
-                    required
                   />
                 </div>
               </div>
             </form>
           </div>
 
-          {/* Fixed footer for buttons */}
           <div className="flex flex-col sm:flex-row gap-4 pt-6 mt-6">
             <motion.button
               whileHover={{ scale: 1.03 }}
@@ -215,7 +217,7 @@ export function EditEmployeeModal({ employee, onClose }: EditEmployeeModalProps)
               onClick={handleSubmit}
               className="flex-1 px-6 py-3 bg-gradient-to-r from-accent-cyan to-accent-purple text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all"
             >
-              Update Employee
+              Add Employee
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.03 }}
