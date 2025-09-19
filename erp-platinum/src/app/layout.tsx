@@ -3,9 +3,8 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/layout/ThemeProvider';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
 import { ModalProvider } from '@/components/layout/ModalProvider';
+import { ClientLayoutWrapper } from '@/components/layout/ClientLayoutWrapper';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -23,11 +22,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider>
-          <ModalProvider> {/* ✅ Wrap everything */}
+          <ModalProvider>
             <div className="flex min-h-screen flex-col">
-              <Header />
-              <main className="flex-1">{children}</main>
-              <Footer />
+              <ClientLayoutWrapper>{children}</ClientLayoutWrapper>
             </div>
           </ModalProvider>
         </ThemeProvider>
