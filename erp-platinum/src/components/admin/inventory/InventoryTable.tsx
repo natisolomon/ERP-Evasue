@@ -32,7 +32,7 @@ export function InventoryTable({ products }: InventoryTableProps) {
     <div className="overflow-x-auto">
       <table className="w-full">
         <thead>
-          <tr className="border-b border-white/10">
+          <tr className="border-b-2 border-strong">
             <th className="text-left p-4 font-medium text-secondary">Product Name</th>
             <th className="text-left p-4 font-medium text-secondary">SKU</th>
             <th className="text-left p-4 font-medium text-secondary">Category</th>
@@ -49,7 +49,7 @@ export function InventoryTable({ products }: InventoryTableProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: i * 0.05 }}
-              className="border-b border-white/5 hover:bg-white/5 transition-colors"
+              className="border-b border-default/50 hover:bg-surface-hover transition-colors"
             >
               <td className="p-4 font-medium text-primary">{product.name}</td>
               <td className="p-4 text-primary">{product.sku}</td>
@@ -81,7 +81,7 @@ export function InventoryTable({ products }: InventoryTableProps) {
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={() => handleView(product)}
-                    className="p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-secondary"
+                    className="p-2 rounded-xl bg-surface-hover hover:bg-surface-hover/80 transition-colors text-secondary"
                   >
                     <Eye size={16} />
                   </motion.button>
@@ -89,7 +89,7 @@ export function InventoryTable({ products }: InventoryTableProps) {
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={() => handleEdit(product)}
-                    className="p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-secondary"
+                    className="p-2 rounded-xl bg-surface-hover hover:bg-surface-hover/80 transition-colors text-secondary"
                   >
                     <Edit2 size={16} />
                   </motion.button>
@@ -97,7 +97,7 @@ export function InventoryTable({ products }: InventoryTableProps) {
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={() => handleDelete(product)}
-                    className="p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-secondary"
+                    className="p-2 rounded-xl bg-surface-hover hover:bg-surface-hover/80 transition-colors text-secondary"
                   >
                     <Trash2 size={16} />
                   </motion.button>

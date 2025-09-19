@@ -20,14 +20,14 @@ interface InventoryFiltersProps {
 
 export function InventoryFilters({ filters, setFilters }: InventoryFiltersProps) {
   return (
-    <div className="glass rounded-3xl p-6 border border-white/10 mb-8">
+    <div className="glass glass-hover rounded-3xl p-6 border-2 border-default mb-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <div>
           <label className="block text-sm font-medium mb-2 text-secondary">Category</label>
           <select
             value={filters.category}
             onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-            className="w-full px-4 py-3 bg-surface-card border border-white/20 rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
+            className="w-full px-4 py-3 bg-surface-card border border-default rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 focus:border-accent-cyan/50 transition-all"
           >
             <option value="all">All Categories</option>
             <option value="Electronics">Electronics</option>
@@ -41,7 +41,7 @@ export function InventoryFilters({ filters, setFilters }: InventoryFiltersProps)
           <select
             value={filters.status}
             onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-            className="w-full px-4 py-3 bg-surface-card border border-white/20 rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
+            className="w-full px-4 py-3 bg-surface-card border border-default rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 focus:border-accent-cyan/50 transition-all"
           >
             <option value="all">All Status</option>
             <option value="in_stock">In Stock</option>
@@ -54,7 +54,7 @@ export function InventoryFilters({ filters, setFilters }: InventoryFiltersProps)
           <select
             value={filters.location}
             onChange={(e) => setFilters({ ...filters, location: e.target.value })}
-            className="w-full px-4 py-3 bg-surface-card border border-white/20 rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
+            className="w-full px-4 py-3 bg-surface-card border border-default rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 focus:border-accent-cyan/50 transition-all"
           >
             <option value="all">All Locations</option>
             <option value="Warehouse A">Warehouse A</option>
@@ -70,7 +70,7 @@ export function InventoryFilters({ filters, setFilters }: InventoryFiltersProps)
               placeholder="Search products..."
               value={filters.search}
               onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-              className="w-full pl-10 pr-4 py-3 bg-surface-card border border-white/20 rounded-xl text-primary placeholder-secondary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
+              className="w-full pl-10 pr-4 py-3 bg-surface-card border border-default rounded-xl text-primary placeholder-secondary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 focus:border-accent-cyan/50 transition-all"
             />
             <svg className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />

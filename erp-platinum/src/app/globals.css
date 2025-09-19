@@ -4,15 +4,34 @@
 @tailwind utilities;
 
 /* ✅ CSS VARIABLES — Theme-Aware */
+/* ✅ ENHANCED CSS VARIABLES — Visually Distinct in Both Themes */
 :root {
-  /* Light Theme */
+  /* Light Theme — Crisp, Professional */
   --text-primary: #1a1f2c;
-  --text-secondary: #6b7280;
-  --text-tertiary: #9ca3af;
-  --surface-bg: #fcfdfe;
-  --surface-card: #ffffff;
-  --surface-hover: #f8fafc;
-  --border-color: #e5e7eb;
+  --text-secondary: #4b5563;
+  --text-tertiary: #6b7280;
+  --surface-bg: #f8fafc; /* Subtle gray background */
+  --surface-card: #ffffff; /* Pure white cards */
+  --surface-hover: #f1f5f9; /* Light blue-gray on hover */
+  --border-color: #cbd5e1; /* Medium gray border */
+  --border-strong: #94a3b8; /* Stronger border for emphasis */
+}
+
+.dark {
+  /* Dark Theme — Deep, Vibrant */
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #94a3b8;
+  --surface-bg: #0f172a; /* Deep blue-gray background */
+  --surface-card: #1e293b; /* Elevated card surface */
+  --surface-hover: #334155; /* Noticeable hover state */
+  --border-color: #334155; /* Medium-dark border */
+  --border-strong: #475569; /* Strong border for definition */
+}
+
+
+* {
+  border-color: var(--border-color);
 }
 
 .modal-backdrop {
@@ -23,16 +42,6 @@
   @apply relative z-50 mx-auto;
 }
 
-.dark {
-  /* Dark Theme */
-  --text-primary: #e6e9f4;
-  --text-secondary: #8a91a3;
-  --text-tertiary: #4b5563;
-  --surface-bg: #0c0f1d;
-  --surface-card: #141828;
-  --surface-hover: #1b1f32;
-  --border-color: #23293d;
-}
 
 /* ✅ APPLY VARIABLES GLOBALLY */
 html {
@@ -73,13 +82,49 @@ html {
 
 /* ✅ GLASSMORPHISM — Using Tailwind's white/5 for safety */
 .glass {
-  @apply bg-white/5 dark:bg-white/5 backdrop-blur-xl border border-white/10;
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  @apply rounded-2xl transition-all duration-300;
 }
 
-.glass-hover {
-  @apply hover:bg-white/10 dark:hover:bg-white/10 transition-all duration-300;
+.dark .glass {
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
+.glass-hover:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.dark .glass-hover:hover {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* ✅ TABLE STYLES */
+table {
+  @apply w-full border-collapse;
+}
+
+th,
+td {
+  @apply p-4 text-left;
+}
+
+thead tr {
+  @apply border-b-2 border-strong;
+}
+
+tbody tr {
+  @apply border-b border-default;
+}
+
+tbody tr:hover {
+  @apply bg-surface-hover;
+}
 /* ✅ CONTAINER */
 .container {
   @apply mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl;
@@ -90,17 +135,17 @@ html {
   @apply bg-gradient-to-r from-accent-cyan to-accent-purple text-white font-medium rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all;
 }
 
-.btn-secondary {
-  @apply bg-white/10 dark:bg-white/5 text-white border border-white/20 hover:bg-white/20 hover:border-white/40 font-medium rounded-xl transition-all;
-}
 
+.btn-secondary {
+  @apply bg-surface-10 text-white border border-surface-20 hover:bg-surface-20 hover:border-surface-30 font-medium rounded-xl transition-all;
+}
 /* ✅ CARD VARIANTS */
 .card-modern {
-  @apply glass glass-hover rounded-2xl p-6 transition-all duration-500 hover:-translate-y-1 hover:shadow-glass-hover;
+  @apply glass rounded-2xl p-6 transition-all duration-500 hover:-translate-y-1;
 }
 
 .card-elevated {
-  @apply glass glass-hover rounded-3xl p-8 border border-white/20 hover:border-white/40 transition-all duration-500 hover:-translate-y-2 hover:shadow-glass-lg;
+  @apply glass rounded-3xl p-8 border border-surface-30 transition-all duration-500 hover:-translate-y-2;
 }
 
 /* ✅ SECTION SPACING */

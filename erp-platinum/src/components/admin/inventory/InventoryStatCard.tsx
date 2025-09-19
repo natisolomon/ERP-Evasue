@@ -2,19 +2,14 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import {
-  Boxes,
-  AlertTriangle,
-  DollarSign,
-  RefreshCw,
-} from 'lucide-react';
+import { Boxes, AlertTriangle, DollarSign, RefreshCw } from 'lucide-react';
 
 interface InventoryStatCardProps {
   title: string;
   value: string;
   trend: string;
   icon: string;
-  variant: 'cyan' | 'green' | 'pink' | 'amber' | 'purple'; // ✅ Added 'purple'
+  variant: 'cyan' | 'green' | 'pink' | 'amber' | 'purple';
 }
 
 const iconMap = {
@@ -25,11 +20,19 @@ const iconMap = {
 };
 
 const variantClasses = {
-  cyan: 'from-accent-cyan/10 to-transparent border-accent-cyan/20 text-accent-cyan',
-  green: 'from-accent-success/10 to-transparent border-accent-success/20 text-accent-success',
-  pink: 'from-accent-pink/10 to-transparent border-accent-pink/20 text-accent-pink',
-  amber: 'from-status-warning/10 to-transparent border-status-warning/20 text-status-warning',
-  purple: 'from-accent-purple/10 to-transparent border-accent-purple/20 text-accent-purple', // ✅ Added purple
+  cyan: 'bg-card-accent-cyan border-accent-cyan/30 text-accent-cyan',
+  green: 'bg-card-accent-green border-accent-success/30 text-accent-success',
+  pink: 'bg-card-accent-pink border-accent-pink/30 text-accent-pink',
+  amber: 'bg-card-accent-amber border-status-warning/30 text-status-warning',
+  purple: 'bg-card-accent-purple border-accent-purple/30 text-accent-purple',
+};
+
+const iconBgClasses = {
+  cyan: 'bg-accent-cyan/10 border-accent-cyan/30',
+  green: 'bg-accent-success/10 border-accent-success/30',
+  pink: 'bg-accent-pink/10 border-accent-pink/30',
+  amber: 'bg-status-warning/10 border-status-warning/30',
+  purple: 'bg-accent-purple/10 border-accent-purple/30',
 };
 
 export function InventoryStatCard({
@@ -41,6 +44,7 @@ export function InventoryStatCard({
 }: InventoryStatCardProps) {
   const Icon = iconMap[icon as keyof typeof iconMap];
   const classes = variantClasses[variant];
+  const iconBgClass = iconBgClasses[variant];
   const isPositive = trend.startsWith('+');
 
   return (
@@ -48,20 +52,20 @@ export function InventoryStatCard({
       whileHover={{ y: -8, scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       className={`
-        glass rounded-3xl p-6 border transition-all duration-500 cursor-pointer overflow-hidden
-        hover:-translate-y-1 ${classes}
+        glass glass-hover p-6 border-2 transition-all duration-500 cursor-pointer overflow-hidden
+        ${classes}
       `}
     >
       <div className="flex justify-between items-start mb-4">
-        <div className="p-3 rounded-xl bg-white/10">
-          <Icon size={24} className={variantClasses[variant].split(' ')[2]} />
+        <div className={`p-3 rounded-xl border-2 ${iconBgClass}`}>
+          <Icon size={24} className={classes.split(' ')[2]} />
         </div>
         <span className={`
           text-sm font-mono font-bold px-3 py-1 rounded-full
           ${
             isPositive
-              ? 'bg-accent-success/20 text-accent-success'
-              : 'bg-status-danger/20 text-status-danger'
+              ? 'bg-accent-success/20 text-accent-success border border-accent-success/30'
+              : 'bg-status-danger/20 text-status-danger border border-status-danger/30'
           }
         `}>
           {trend}
