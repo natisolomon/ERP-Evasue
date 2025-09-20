@@ -1,26 +1,45 @@
 // src/components/finance/dashboard/FinanceUserChart.tsx
 'use client';
 
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
-export function FinanceUserChart() {
-  // Mock data for chart
-  const monthlyData = [
-    { month: 'Jan', revenue: 35000, expenses: 25000 },
-    { month: 'Feb', revenue: 42000, expenses: 28000 },
-    { month: 'Mar', revenue: 38000, expenses: 26000 },
-    { month: 'Apr', revenue: 45000, expenses: 29000 },
-    { month: 'May', revenue: 48000, expenses: 28000 },
-    { month: 'Jun', revenue: 52000, expenses: 30000 },
-  ];
+// ✅ Define data type
+interface MonthlyData {
+  month: string;
+  revenue: number;
+  expenses: number;
+}
 
-  const maxRevenue = Math.max(...monthlyData.map(d => d.revenue));
-  const maxExpenses = Math.max(...monthlyData.map(d => d.expenses));
+export function FinanceUserChart() {
+  // ✅ Type state correctly
+  const [data, setData] = useState<MonthlyData[] | null>(null);
+
+  useEffect(() => {
+    // ✅ Set data with correct type
+    setData([
+      { month: 'Jan', revenue: 35000, expenses: 25000 },
+      { month: 'Feb', revenue: 42000, expenses: 28000 },
+      { month: 'Mar', revenue: 38000, expenses: 26000 },
+      { month: 'Apr', revenue: 45000, expenses: 29000 },
+      { month: 'May', revenue: 48000, expenses: 28000 },
+      { month: 'Jun', revenue: 52000, expenses: 30000 },
+    ]);
+  }, []);
+
+  // ✅ Handle loading state
+  if (!data) {
+    return <div className="h-64 bg-surface-hover rounded-xl animate-pulse"></div>;
+  }
+
+  // ✅ Calculate max values
+  const maxRevenue = Math.max(...data.map(d => d.revenue));
+  const maxExpenses = Math.max(...data.map(d => d.expenses));
   const maxValue = Math.max(maxRevenue, maxExpenses);
 
   return (
     <div className="h-64 flex items-end justify-between gap-4">
-      {monthlyData.map((item, i) => (
+      {data.map((item, i) => (
         <div key={i} className="flex-1 flex flex-col items-center">
           <div className="relative w-full flex justify-between">
             <motion.div
