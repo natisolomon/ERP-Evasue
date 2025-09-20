@@ -2,12 +2,13 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Bell, Search, User, LogOut } from 'lucide-react';
+import { Bell, Search, User, LogOut, Sun, Moon } from 'lucide-react';
 import { useTheme } from '@/components/layout/ThemeProvider';
 import { useRouter } from 'next/navigation';
 
 export function InventoryHeader() {
   const router = useRouter();
+  const { theme, toggleTheme } = useTheme();
 
   const handleLogout = () => {
     // TODO: Add logout logic
@@ -45,6 +46,18 @@ export function InventoryHeader() {
           </button>
 
           {/* Theme Toggle */}
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-xl bg-surface-hover hover:bg-surface-hover/80 transition-colors text-secondary"
+            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+            title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+          >
+            {theme === 'dark' ? (
+              <Sun size={20} className="text-yellow-400" />
+            ) : (
+              <Moon size={20} className="text-blue-600" />
+            )}
+          </button>
 
           {/* User Menu */}
           <div className="flex items-center gap-3">
