@@ -10,6 +10,10 @@ public class AppDbContext : DbContext
     }
 
     public DbSet<Staff> Staffs { get; set; } = null!;
+    public DbSet<Attendance> Attendances { get; set; } = null!;
+    public DbSet<LeaveRequest> LeaveRequests { get; set; } = null!;
+    public DbSet<Onboarding> Onboardings { get; set; } = null!;
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
