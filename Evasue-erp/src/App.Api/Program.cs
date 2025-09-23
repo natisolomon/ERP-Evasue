@@ -1,5 +1,8 @@
 using App.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using App.Application.Interfaces;
+using App.Application.Services;
+using App.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +16,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddScoped<IStaffRepository, StaffRepository>();
+builder.Services.AddScoped<StaffService>();
 
 var app = builder.Build();
 
