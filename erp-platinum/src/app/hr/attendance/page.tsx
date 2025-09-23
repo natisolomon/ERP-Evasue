@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { HRAttendanceTable } from '@/components/hr/attendance/HRAttendanceTable';
 import { HRAttendanceFilters } from '@/components/hr/attendance/HRAttendanceFilters';
 import { HRAttendanceChart } from '@/components/hr/attendance/HRAttendanceChart';
-import { RecordAttendanceModal } from '@/components/hr/attendance/HRAttendanceModal/RecordAttendanceModal';
+import { RecordAttendanceModal } from '@/components/hr/attendance/modals/RecordAttendanceModal';
 import { useModal } from '@/components/layout/ModalProvider';
 import { mockStaff } from '@/lib/hrUserData';
 
