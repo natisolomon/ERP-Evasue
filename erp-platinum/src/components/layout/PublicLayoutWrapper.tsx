@@ -13,7 +13,8 @@ export function PublicLayoutWrapper({
   const pathname = usePathname();
   const isInventoryPage = pathname.startsWith('/inventory');
   const isFinancePage = pathname.startsWith('/finance'); // ✅ Add this line
-  const isPortalPage = isInventoryPage || isFinancePage; // ✅ Update this line
+  const isHRPage = pathname.startsWith('/hr');
+  const isPortalPage = isInventoryPage || isFinancePage || isHRPage; // ✅ Update this line
 
   if (isPortalPage) {
     // Don't wrap with Header/Footer for portal pages
