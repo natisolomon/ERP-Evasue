@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, GraduationCap } from 'lucide-react';
+import { X, GraduationCap,  FileText } from 'lucide-react';
 import { HROnboarding } from '@/lib/hrUserData';
 
 interface EditOnboardingModalProps {
