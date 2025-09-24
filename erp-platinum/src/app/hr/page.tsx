@@ -3,23 +3,37 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '@/store';
+import { fetchStaff } from '../../store/staffSlice';
 import { HRStatCard } from '@/components/hr/dashboard/HRStatCard';
 import { HRChart } from '@/components/hr/dashboard/HRChart';
 import { RecentActivities } from '@/components/hr/dashboard/RecentActivities';
 import { QuickActions } from '@/components/hr/dashboard/QuickActions';
-import { mockStaff, mockLeaveRequests, mockPerformanceReviews } from '@/lib/hrUserData';
+import { mockLeaveRequests } from '@/lib/hrUserData'; // Keep for now if leave module isn't built
 
 export default function HRDashboardPage() {
+  const dispatch = useDispatch<AppDispatch>();
+  const { staff, loading } = useSelector((state: RootState) => state.staff);
+
   const [activeTab, setActiveTab] = useState('overview');
 
-  // Calculate stats
-  const totalStaff = mockStaff.length;
-  const activeStaff = mockStaff.filter(s => s.status === 'active').length;
-  const staffOnLeave = mockStaff.filter(s => s.status === 'on_leave').length;
-  const pendingLeaveRequests = mockLeaveRequests.filter(r => r.status === 'pending').length;
-  const averagePerformance = mockStaff.reduce((sum, s) => sum + s.performanceRating, 0) / mockStaff.length;
+  // Fetch real staff on mount
+  useEffect(() => {
+    dispatch(fetchStaff());
+  }, [dispatch]);
 
-  // Mock chart data
+  // ✅ Use real staff data
+  const totalStaff = staff.length;
+  const activeStaff = staff.filter(s => s.isActive).length;
+  // Note: "on_leave" doesn't exist in backend → treat all non-active as inactive
+  const staffOnLeave = 0; // or remove this stat if not needed
+  const pendingLeaveRequests = mockLeaveRequests.filter(r => r.status === 'pending').length;
+
+  // Mock performance (since backend doesn't have it yet)
+  const averagePerformance = 4.2;
+
+  // Mock chart data (okay for visuals)
   const departmentDistribution = [
     { name: 'Engineering', value: 40, color: 'bg-accent-cyan' },
     { name: 'Marketing', value: 25, color: 'bg-accent-purple' },
@@ -35,6 +49,14 @@ export default function HRDashboardPage() {
     { month: 'May', value: 4.4 },
     { month: 'Jun', value: 4.5 },
   ];
+
+  if (loading && staff.length === 0) {
+    return (
+      <div className="p-8">
+        <p className="text-secondary">Loading HR dashboard...</p>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -133,7 +155,7 @@ export default function HRDashboardPage() {
                     key={i}
                     initial={{ height: 0 }}
                     animate={{ height: `${dept.value}%` }}
-                    transition={{ delay: i * 0.1, duration: 0.8, ease: "easeOut" }}
+                    transition={{ delay: i * 0.1, duration: 0.8, ease: 'easeOut' }}
                     className={`w-full max-w-8 rounded-t-xl ${dept.color} mx-0.5`}
                   />
                 ))}

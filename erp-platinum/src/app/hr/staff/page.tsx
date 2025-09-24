@@ -1,46 +1,62 @@
 // src/app/hr/staff/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '@/store';
+import { fetchStaff } from '../../../store/staffSlice';
 import { HRStaffTable } from '@/components/hr/staff/HRStaffTable';
 import { HRStaffFilters } from '@/components/hr/staff/HRStaffFilters';
 import { AddStaffModal } from '@/components/hr/staff/modals/AddStaffModal';
 import { useModal } from '@/components/layout/ModalProvider';
-import { mockStaff } from '@/lib/hrUserData';
 
 export default function HRStaffPage() {
+  // ✅ Use Redux state — no more mockStaff
+  const dispatch = useDispatch<AppDispatch>();
+  const { staff, loading, error } = useSelector((state: RootState) => state.staff);
+
+  // ✅ Local filter state (this is fine)
   const [filters, setFilters] = useState({
     department: 'all',
     status: 'all',
-    position: 'all',
     search: '',
   });
 
-  const [staff, setStaff] = useState(mockStaff);
-
-  const filteredStaff = staff.filter(member => {
-    if (filters.department !== 'all' && member.department !== filters.department) return false;
-    if (filters.status !== 'all' && member.status !== filters.status) return false;
-    if (filters.position !== 'all' && !member.position.toLowerCase().includes(filters.position.toLowerCase())) return false;
-    if (filters.search && !member.firstName.toLowerCase().includes(filters.search.toLowerCase()) && !member.lastName.toLowerCase().includes(filters.search.toLowerCase())) return false;
-    return true;
-  });
+  // ✅ Apply filters to real staff data
+  const filteredStaff = useMemo(() => {
+    return staff.filter((member) => {
+      if (filters.department !== 'all' && member.department !== filters.department)
+        return false;
+      if (filters.status !== 'all') {
+        const isActive = member.isActive;
+        if (filters.status === 'active' && !isActive) return false;
+        if (filters.status === 'inactive' && isActive) return false;
+      }
+      if (
+        filters.search &&
+        !member.firstName.toLowerCase().includes(filters.search.toLowerCase()) &&
+        !member.lastName.toLowerCase().includes(filters.search.toLowerCase())
+      )
+        return false;
+      return true;
+    });
+  }, [staff, filters]);
 
   const { openModal, closeModal } = useModal();
 
-  const handleAddStaff = (newStaff: any) => {
-    setStaff(prev => [newStaff, ...prev]);
+  // ✅ Fetch real data on mount
+  useEffect(() => {
+    dispatch(fetchStaff());
+  }, [dispatch]);
+
+  // ✅ Handle add via Redux (we'll update AddStaffModal next)
+  const handleOpenAddModal = () => {
+    openModal(<AddStaffModal onClose={closeModal} />);
   };
 
-  const handleOpenAddModal = () => {
-    openModal(
-      <AddStaffModal
-        onClose={closeModal}
-        onAdd={handleAddStaff}
-      />
-    );
-  };
+  if (loading) return <div className="p-8">Loading staff...</div>;
+  if (error) return <div className="p-8 text-red-500">Error: {error}</div>;
 
   return (
     <div>

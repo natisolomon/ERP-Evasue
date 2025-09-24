@@ -1,30 +1,31 @@
-// src/components/hr/staff/HRStaffModal/EditStaffModal.tsx
+// src/components/hr/staff/modals/EditStaffModal.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
-import { HRStaff } from '@/lib/hrUserData';
+import { X, Loader2 } from 'lucide-react';
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '@/store';
+import { updateStaff } from '../../../../store/staffSlice';
+import { Staff } from '../../../../store/staffSlice'; // ✅ Real Staff type
 
 interface EditStaffModalProps {
-  staff: HRStaff;
+  staff: Staff; // ✅ Not HRStaff
   onClose: () => void;
 }
 
 export function EditStaffModal({ staff, onClose }: EditStaffModalProps) {
+  const dispatch = useDispatch<AppDispatch>();
+  const [isLoading, setIsLoading] = useState(false);
+
   const [formData, setFormData] = useState({
     firstName: staff.firstName,
     lastName: staff.lastName,
     email: staff.email,
     phone: staff.phone,
     department: staff.department,
-    position: staff.position,
-    hireDate: staff.hireDate,
-    salary: staff.salary.toString(),
-    status: staff.status,
-    performanceRating: staff.performanceRating.toString(),
-    lastReviewDate: staff.lastReviewDate,
-    manager: staff.manager,
+    dateJoined: staff.dateJoined.split('T')[0], // Convert ISO to date string
+    isActive: staff.isActive,
   });
 
   useEffect(() => {
@@ -35,23 +36,37 @@ export function EditStaffModal({ staff, onClose }: EditStaffModalProps) {
     return () => window.removeEventListener('keydown', handleEscape);
   }, [onClose]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.department || !formData.position) {
-      alert('Please fill in required fields');
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.department) {
+      alert('Please fill in all required fields.');
       return;
     }
 
-    const updatedStaff = {
-      ...staff,
-      ...formData,
-      salary: parseFloat(formData.salary),
-      performanceRating: parseFloat(formData.performanceRating),
-    };
+    setIsLoading(true);
 
-    console.log('Update staff:', updatedStaff);
-    onClose();
+    try {
+      await dispatch(
+        updateStaff({
+          id: staff.id,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+          department: formData.department,
+          dateJoined: formData.dateJoined,
+          isActive: formData.isActive,
+        })
+      ).unwrap();
+
+      onClose();
+    } catch (err) {
+      console.error('Failed to update staff:', err);
+      alert('Failed to update staff. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -72,6 +87,7 @@ export function EditStaffModal({ staff, onClose }: EditStaffModalProps) {
         >
           <button
             onClick={onClose}
+            disabled={isLoading}
             className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/10 transition-colors text-secondary z-10"
             aria-label="Close modal"
           >
@@ -82,150 +98,140 @@ export function EditStaffModal({ staff, onClose }: EditStaffModalProps) {
             <h2 className="text-3xl font-bold bg-gradient-to-r from-accent-cyan to-accent-purple bg-clip-text text-transparent">
               Edit Staff
             </h2>
-            <p className="text-secondary mt-2">Update the details for {staff.firstName} {staff.lastName}</p>
+            <p className="text-secondary mt-2">
+              Update the details for {staff.firstName} {staff.lastName}
+            </p>
           </div>
 
-            <div className="flex-1 overflow-y-auto pr-2">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-secondary">First Name *</label>
-                    <input
-                      type="text"
-                      value={formData.firstName}
-                      onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                      className="w-full px-4 py-3 bg-surface-hover border border-default rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-secondary">Last Name *</label>
-                    <input
-                      type="text"
-                      value={formData.lastName}
-                      onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                      className="w-full px-4 py-3 bg-surface-hover border border-default rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-secondary">Email *</label>
-                    <input
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full px-4 py-3 bg-surface-hover border border-default rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-secondary">Phone</label>
-                    <input
-                      type="tel"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full px-4 py-3 bg-surface-hover border border-default rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-secondary">Department *</label>
-                    <input
-                      type="text"
-                      value={formData.department}
-                      onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                      className="w-full px-4 py-3 bg-surface-hover border border-default rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-secondary">Position *</label>
-                    <input
-                      type="text"
-                      value={formData.position}
-                      onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                      className="w-full px-4 py-3 bg-surface-hover border border-default rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-secondary">Hire Date</label>
-                    <input
-                      type="date"
-                      value={formData.hireDate}
-                      onChange={(e) => setFormData({ ...formData, hireDate: e.target.value })}
-                      className="w-full px-4 py-3 bg-surface-hover border border-default rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-secondary">Salary ($)</label>
-                    <input
-                      type="number"
-                      value={formData.salary}
-                      onChange={(e) => setFormData({ ...formData, salary: e.target.value })}
-                      className="w-full px-4 py-3 bg-surface-hover border border-default rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-secondary">Status</label>
-                    <select
-                      value={formData.status}
-                      onChange={(e) => setFormData({ ...formData, status: e.target.value as 'active' | 'inactive' | 'on_leave' })}
-                      className="w-full px-4 py-3 bg-surface-hover border border-default rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
-                    >
-                      <option value="active">Active</option>
-                      <option value="on_leave">On Leave</option>
-                      <option value="inactive">Inactive</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-secondary">Performance Rating (1-5)</label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="5"
-                      step="0.1"
-                      value={formData.performanceRating}
-                      onChange={(e) => setFormData({ ...formData, performanceRating: e.target.value })}
-                      className="w-full px-4 py-3 bg-surface-hover border border-default rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-secondary">Last Review Date</label>
-                    <input
-                      type="date"
-                      value={formData.lastReviewDate}
-                      onChange={(e) => setFormData({ ...formData, lastReviewDate: e.target.value })}
-                      className="w-full px-4 py-3 bg-surface-hover border border-default rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-secondary">Manager</label>
-                    <input
-                      type="text"
-                      value={formData.manager}
-                      onChange={(e) => setFormData({ ...formData, manager: e.target.value })}
-                      className="w-full px-4 py-3 bg-surface-hover border border-default rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
-                    />
-                  </div>
+          <div className="flex-1 overflow-y-auto pr-2">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* First Name */}
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-secondary">First Name *</label>
+                  <input
+                    type="text"
+                    value={formData.firstName}
+                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                    className="w-full px-4 py-3 bg-surface-hover border border-default rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
+                    required
+                    disabled={isLoading}
+                  />
                 </div>
-              </form>
-            </div>
+
+                {/* Last Name */}
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-secondary">Last Name *</label>
+                  <input
+                    type="text"
+                    value={formData.lastName}
+                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                    className="w-full px-4 py-3 bg-surface-hover border border-default rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
+
+                {/* Email */}
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-secondary">Email *</label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full px-4 py-3 bg-surface-hover border border-default rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
+
+                {/* Phone */}
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-secondary">Phone</label>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="w-full px-4 py-3 bg-surface-hover border border-default rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
+                    disabled={isLoading}
+                  />
+                </div>
+
+                {/* Department */}
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-secondary">Department *</label>
+                  <input
+                    type="text"
+                    value={formData.department}
+                    onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                    className="w-full px-4 py-3 bg-surface-hover border border-default rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
+
+                {/* Hire Date → DateJoined */}
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-secondary">Hire Date *</label>
+                  <input
+                    type="date"
+                    value={formData.dateJoined}
+                    onChange={(e) => setFormData({ ...formData, dateJoined: e.target.value })}
+                    className="w-full px-4 py-3 bg-surface-hover border border-default rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
+
+                {/* Status → IsActive */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium mb-2 text-secondary">Status</label>
+                  <label className="inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.isActive}
+                      onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                      className="sr-only peer"
+                      disabled={isLoading}
+                    />
+                    <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-cyan">
+                    </div>
+                    <span className="ms-3 text-sm text-primary">
+                      {formData.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </label>
+                </div>
+              </div>
+            </form>
+          </div>
 
           <div className="flex flex-col sm:flex-row gap-4 pt-6 mt-6">
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               type="submit"
-              onClick={handleSubmit}
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-accent-cyan to-accent-purple text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all"
+              disabled={isLoading}
+              className={`flex-1 px-6 py-3 font-bold rounded-xl shadow-lg hover:shadow-xl transition-all ${
+                isLoading
+                  ? 'bg-gray-500 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-accent-cyan to-accent-purple text-white'
+              }`}
             >
-              Update Staff
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Updating...
+                </div>
+              ) : (
+                'Update Staff'
+              )}
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               type="button"
               onClick={onClose}
+              disabled={isLoading}
               className="flex-1 px-6 py-3 bg-surface-hover border border-default text-secondary font-medium rounded-xl hover:bg-surface-hover/80 transition-all"
             >
               Cancel
