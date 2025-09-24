@@ -1,25 +1,30 @@
-// src/components/hr/leave-requests/HRLeaveRequestModal/EditLeaveRequestModal.tsx
+// src/components/hr/leave-requests/modals/EditLeaveRequestModal.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, FileText } from 'lucide-react';
-import { HRLeaveRequest } from '@/lib/hrUserData';
+import { X, FileText, Loader2 } from 'lucide-react';
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '@/store';
+import { Staff } from '../../../../store/staffSlice';
+import { LeaveRequest } from '@/store/LeaveRequestSlice';
+import { updateLeaveRequest } from '@/store/LeaveRequestSlice';
 
 interface EditLeaveRequestModalProps {
-  request: HRLeaveRequest;
+  request: LeaveRequest;
+  staff: Staff;
   onClose: () => void;
 }
 
 export function EditLeaveRequestModal({ request, onClose }: EditLeaveRequestModalProps) {
+  const dispatch = useDispatch<AppDispatch>();
+  const [isLoading, setIsLoading] = useState(false);
+
   const [formData, setFormData] = useState({
-    type: request.type,
-    startDate: request.startDate,
-    endDate: request.endDate,
+    startDate: request.startDate.split('T')[0], // Convert ISO to date string
+    endDate: request.endDate.split('T')[0],
     reason: request.reason,
-    status: request.status,
-    approvedBy: request.approvedBy || '',
-    notes: request.notes || '',
+    status: request.status, // 'Pending' | 'Approved' | 'Rejected'
   });
 
   useEffect(() => {
@@ -34,11 +39,10 @@ export function EditLeaveRequestModal({ request, onClose }: EditLeaveRequestModa
     const start = new Date(formData.startDate);
     const end = new Date(formData.endDate);
     const diffTime = Math.abs(end.getTime() - start.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-    return diffDays;
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.startDate || !formData.endDate || !formData.reason) {
@@ -46,16 +50,28 @@ export function EditLeaveRequestModal({ request, onClose }: EditLeaveRequestModa
       return;
     }
 
-    const days = calculateDays();
+    setIsLoading(true);
 
-    const updatedRequest = {
-      ...request,
-      ...formData,
-      days,
-    };
+    try {
+      // ✅ Send only backend-supported fields
+      await dispatch(
+        updateLeaveRequest({
+          id: request.id,
+          staffId: request.staffId,
+          startDate: formData.startDate, // Backend expects ISO string
+          endDate: formData.endDate,
+          reason: formData.reason,
+          status: formData.status,
+        })
+      ).unwrap();
 
-    console.log('Update leave request:', updatedRequest);
-    onClose();
+      onClose();
+    } catch (err) {
+      console.error('Failed to update leave request:', err);
+      alert('Failed to update leave request. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const days = calculateDays();
@@ -78,6 +94,7 @@ export function EditLeaveRequestModal({ request, onClose }: EditLeaveRequestModa
         >
           <button
             onClick={onClose}
+            disabled={isLoading}
             className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/10 transition-colors text-secondary z-10"
             aria-label="Close modal"
           >
@@ -94,128 +111,104 @@ export function EditLeaveRequestModal({ request, onClose }: EditLeaveRequestModa
             <p className="text-secondary mt-2">Update the details for this leave request</p>
           </div>
 
-            <div className="flex-1 overflow-y-auto pr-2">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="glass p-6 rounded-2xl">
-                  <h3 className="text-lg font-bold text-primary mb-4">Leave Request Details</h3>
-                  
-                  <div className="mb-6">
-                    <label className="block text-sm font-medium mb-2 text-secondary">Leave Type *</label>
-                    <select
-                      value={formData.type}
-                      onChange={(e) => setFormData({ ...formData, type: e.target.value as 'vacation' | 'sick' | 'personal' | 'unpaid' })}
+          <div className="flex-1 overflow-y-auto pr-2">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="glass p-6 rounded-2xl">
+                <h3 className="text-lg font-bold text-primary mb-4">Leave Request Details</h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-secondary">Start Date *</label>
+                    <input
+                      type="date"
+                      value={formData.startDate}
+                      onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                       className="w-full px-4 py-3 bg-surface-hover border border-default rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
                       required
-                    >
-                      <option value="vacation">Vacation</option>
-                      <option value="sick">Sick Leave</option>
-                      <option value="personal">Personal Leave</option>
-                      <option value="unpaid">Unpaid Leave</option>
-                    </select>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div>
-                      <label className="block text-sm font-medium mb-2 text-secondary">Start Date *</label>
-                      <input
-                        type="date"
-                        value={formData.startDate}
-                        onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                        className="w-full px-4 py-3 bg-surface-hover border border-default rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2 text-secondary">End Date *</label>
-                      <input
-                        type="date"
-                        value={formData.endDate}
-                        onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                        className="w-full px-4 py-3 bg-surface-hover border border-default rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="mb-6 p-4 bg-white/5 border border-white/20 rounded-xl">
-                    <div className="flex items-center justify-between">
-                      <span className="text-secondary font-medium">Total Days:</span>
-                      <span className="text-primary text-xl font-bold">{days} days</span>
-                    </div>
-                  </div>
-
-                  <div className="mb-6">
-                    <label className="block text-sm font-medium mb-2 text-secondary">Reason *</label>
-                    <textarea
-                      value={formData.reason}
-                      onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                      placeholder="Please provide a reason for your leave request..."
-                      rows={4}
-                      className="w-full px-4 py-3 bg-surface-hover border border-default rounded-xl text-primary placeholder-secondary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all resize-none"
-                      required
+                      disabled={isLoading}
                     />
                   </div>
-
-                  <div className="mb-6">
-                    <label className="block text-sm font-medium mb-2 text-secondary">Status *</label>
-                    <select
-                      value={formData.status}
-                      onChange={(e) => setFormData({ ...formData, status: e.target.value as 'pending' | 'approved' | 'rejected' })}
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-secondary">End Date *</label>
+                    <input
+                      type="date"
+                      value={formData.endDate}
+                      onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                       className="w-full px-4 py-3 bg-surface-hover border border-default rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
                       required
-                    >
-                      <option value="pending">Pending</option>
-                      <option value="approved">Approved</option>
-                      <option value="rejected">Rejected</option>
-                    </select>
-                  </div>
-
-                  {formData.status === 'approved' && (
-                    <div className="mb-6">
-                      <label className="block text-sm font-medium mb-2 text-secondary">Approved By</label>
-                      <input
-                        type="text"
-                        value={formData.approvedBy}
-                        onChange={(e) => setFormData({ ...formData, approvedBy: e.target.value })}
-                        placeholder="Name of approver"
-                        className="w-full px-4 py-3 bg-surface-hover border border-default rounded-xl text-primary placeholder-secondary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
-                      />
-                    </div>
-                  )}
-
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-secondary">Additional Notes</label>
-                    <textarea
-                      value={formData.notes}
-                      onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                      placeholder="Any additional information or special requests..."
-                      rows={3}
-                      className="w-full px-4 py-3 bg-surface-hover border border-default rounded-xl text-primary placeholder-secondary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all resize-none"
+                      disabled={isLoading}
                     />
                   </div>
                 </div>
-              </form>
-            </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 pt-6 mt-6">
+                <div className="mb-6 p-4 bg-white/5 border border-white/20 rounded-xl">
+                  <div className="flex items-center justify-between">
+                    <span className="text-secondary font-medium">Total Days:</span>
+                    <span className="text-primary text-xl font-bold">{days} days</span>
+                  </div>
+                </div>
+
+                <div className="mb-6">
+                  <label className="block text-sm font-medium mb-2 text-secondary">Reason *</label>
+                  <textarea
+                    value={formData.reason}
+                    onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+                    placeholder="Please provide a reason for your leave request..."
+                    rows={4}
+                    className="w-full px-4 py-3 bg-surface-hover border border-default rounded-xl text-primary placeholder-secondary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all resize-none"
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
+
+                <div className="mb-6">
+                  <label className="block text-sm font-medium mb-2 text-secondary">Status *</label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value as 'Pending' | 'Approved' | 'Rejected' })}
+                    className="w-full px-4 py-3 bg-surface-hover border border-default rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
+                    required
+                    disabled={isLoading}
+                  >
+                    <option value="Pending">Pending</option>
+                    <option value="Approved">Approved</option>
+                    <option value="Rejected">Rejected</option>
+                  </select>
+                </div>
+              </div>
+                        <div className="flex flex-col sm:flex-row gap-4 pt-6 mt-6">
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               type="submit"
-              onClick={handleSubmit}
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-accent-cyan to-accent-purple text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all"
+              disabled={isLoading}
+              className={`flex-1 px-6 py-3 font-bold rounded-xl shadow-lg hover:shadow-xl transition-all ${
+                isLoading
+                  ? 'bg-gray-500 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-accent-cyan to-accent-purple text-white'
+              }`}
             >
-              Update Request
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Updating...
+                </div>
+              ) : (
+                'Update Request'
+              )}
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               type="button"
               onClick={onClose}
+              disabled={isLoading}
               className="flex-1 px-6 py-3 bg-surface-hover border border-default text-secondary font-medium rounded-xl hover:bg-surface-hover/80 transition-all"
             >
               Cancel
             </motion.button>
+          </div>
+            </form>
           </div>
         </motion.div>
       </motion.div>

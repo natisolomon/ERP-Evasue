@@ -3,13 +3,11 @@
 
 interface HRLeaveRequestFiltersProps {
   filters: {
-    type: string;
     status: string;
     department: string;
     search: string;
   };
   setFilters: React.Dispatch<React.SetStateAction<{
-    type: string;
     status: string;
     department: string;
     search: string;
@@ -20,20 +18,7 @@ export function HRLeaveRequestFilters({ filters, setFilters }: HRLeaveRequestFil
   return (
     <div className="glass rounded-3xl p-6 border border-default mb-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-2 text-secondary">Type</label>
-          <select
-            value={filters.type}
-            onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-            className="w-full px-4 py-3 bg-surface-card border border-default rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
-          >
-            <option value="all">All Types</option>
-            <option value="vacation">Vacation</option>
-            <option value="sick">Sick Leave</option>
-            <option value="personal">Personal</option>
-            <option value="unpaid">Unpaid</option>
-          </select>
-        </div>
+        
         <div>
           <label className="block text-sm font-medium mb-2 text-secondary">Status</label>
           <select

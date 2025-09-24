@@ -1,11 +1,14 @@
+// src/store/index.ts
 import { configureStore } from '@reduxjs/toolkit';
-import staffReducer from '../store/staffSlice';
-import attendanceReducer from '../store/AttendanceSlice'
+import staffReducer from '../store/staffSlice';          // ✅
+import attendanceReducer from '@/store/AttendanceSlice'; // ✅
+import leaveRequestReducer from '@/store/LeaveRequestSlice'; // ✅
 
 export const store = configureStore({
   reducer: {
-    staff: staffReducer, // 👈 key must match your slice usage
+    staff: staffReducer,
     attendance: attendanceReducer,
+    leaveRequest: leaveRequestReducer, // ✅ Key matches slice name
   },
 });
 

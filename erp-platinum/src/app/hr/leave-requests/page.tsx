@@ -1,53 +1,72 @@
 // src/app/hr/leave-requests/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '@/store';
+import { fetchStaff } from '../../../store/staffSlice';
+import { fetchLeaveRequests } from '@/store/LeaveRequestSlice'; // ✅ Use your existing slice
 import { HRLeaveRequestTable } from '@/components/hr/leave-requests/HRLeaveRequestTable';
 import { HRLeaveRequestFilters } from '@/components/hr/leave-requests/HRLeaveRequestFilters';
 import { CreateLeaveRequestModal } from '@/components/hr/leave-requests/modals/CreateLeaveRequestModal';
 import { useModal } from '@/components/layout/ModalProvider';
-import { mockLeaveRequests, mockStaff } from '@/lib/hrUserData';
 
 export default function HRLeaveRequestsPage() {
+  const dispatch = useDispatch<AppDispatch>();
+  const { staff } = useSelector((state: RootState) => state.staff);
+  const { requests: leaveRequests, loading } = useSelector((state: RootState) => state.leaveRequest); // ✅ matches slice name
+
   const [filters, setFilters] = useState({
-    type: 'all',
     status: 'all',
     department: 'all',
     search: '',
   });
 
-  const [leaveRequests, setLeaveRequests] = useState(mockLeaveRequests);
+  useEffect(() => {
+    dispatch(fetchStaff());
+    dispatch(fetchLeaveRequests());
+  }, [dispatch]);
 
-  const filteredRequests = leaveRequests.filter(request => {
-    const staff = mockStaff.find(s => s.id === request.staffId);
-    if (filters.type !== 'all' && request.type !== filters.type) return false;
-    if (filters.status !== 'all' && request.status !== filters.status) return false;
-    if (filters.department !== 'all' && staff && staff.department !== filters.department) return false;
-    if (filters.search && !request.staffName.toLowerCase().includes(filters.search.toLowerCase())) return false;
-    return true;
-  });
+  const filteredRequests = useMemo(() => {
+    return leaveRequests.filter(request => {
+      const staffMember = staff.find(s => s.id === request.staffId);
+      
+      // Filter by department
+      if (filters.department !== 'all' && staffMember?.department !== filters.department) 
+        return false;
+      
+      // Filter by status
+      if (
+        filters.status !== 'all' && 
+        String(request.status).toLowerCase() !== filters.status
+      )
+      return false;
+      
+      // Search by staff name
+      if (filters.search) {
+        const name = staffMember 
+          ? `${staffMember.firstName} ${staffMember.lastName}`.toLowerCase()
+          : '';
+        if (!name.includes(filters.search.toLowerCase())) 
+          return false;
+      }
+      
+      return true;
+    });
+  }, [leaveRequests, staff, filters]);
 
   const { openModal, closeModal } = useModal();
 
-  const handleCreateRequest = (newRequest: any) => {
-    setLeaveRequests(prev => [newRequest, ...prev]);
-  };
-
-  const handleOpenCreateModal = () => {
-    openModal(
-      <CreateLeaveRequestModal
-        onClose={closeModal}
-        onCreate={handleCreateRequest}
-      />
-    );
-  };
-
-  // Calculate stats
+  // ✅ Stats from real data
   const totalRequests = leaveRequests.length;
-  const pendingRequests = leaveRequests.filter(r => r.status === 'pending').length;
-  const approvedRequests = leaveRequests.filter(r => r.status === 'approved').length;
-  const rejectedRequests = leaveRequests.filter(r => r.status === 'rejected').length;
+  const pendingRequests = leaveRequests.filter(r => r.status === 'Pending').length;
+  const approvedRequests = leaveRequests.filter(r => r.status === 'Approved').length;
+  const rejectedRequests = leaveRequests.filter(r => r.status === 'Rejected').length;
+
+  if (loading && leaveRequests.length === 0) {
+    return <div className="p-8">Loading leave requests...</div>;
+  }
 
   return (
     <div>
@@ -67,9 +86,7 @@ export default function HRLeaveRequestsPage() {
           className="glass rounded-3xl p-6 border border-default transition-all duration-500 cursor-pointer overflow-hidden hover:-translate-y-1 bg-accent-cyan/10 text-accent-cyan"
         >
           <h3 className="text-xs text-secondary uppercase tracking-wider font-medium mb-2">Total Requests</h3>
-          <div className="relative h-8">
-            <p className="text-3xl font-extrabold">{totalRequests}</p>
-          </div>
+          <p className="text-3xl font-extrabold">{totalRequests}</p>
         </motion.div>
         <motion.div
           whileHover={{ y: -8, scale: 1.02 }}
@@ -77,9 +94,7 @@ export default function HRLeaveRequestsPage() {
           className="glass rounded-3xl p-6 border border-default transition-all duration-500 cursor-pointer overflow-hidden hover:-translate-y-1 bg-status-warning/10 text-status-warning"
         >
           <h3 className="text-xs text-secondary uppercase tracking-wider font-medium mb-2">Pending</h3>
-          <div className="relative h-8">
-            <p className="text-3xl font-extrabold">{pendingRequests}</p>
-          </div>
+          <p className="text-3xl font-extrabold">{pendingRequests}</p>
         </motion.div>
         <motion.div
           whileHover={{ y: -8, scale: 1.02 }}
@@ -87,9 +102,7 @@ export default function HRLeaveRequestsPage() {
           className="glass rounded-3xl p-6 border border-default transition-all duration-500 cursor-pointer overflow-hidden hover:-translate-y-1 bg-accent-success/10 text-accent-success"
         >
           <h3 className="text-xs text-secondary uppercase tracking-wider font-medium mb-2">Approved</h3>
-          <div className="relative h-8">
-            <p className="text-3xl font-extrabold">{approvedRequests}</p>
-          </div>
+          <p className="text-3xl font-extrabold">{approvedRequests}</p>
         </motion.div>
         <motion.div
           whileHover={{ y: -8, scale: 1.02 }}
@@ -97,9 +110,7 @@ export default function HRLeaveRequestsPage() {
           className="glass rounded-3xl p-6 border border-default transition-all duration-500 cursor-pointer overflow-hidden hover:-translate-y-1 bg-status-danger/10 text-status-danger"
         >
           <h3 className="text-xs text-secondary uppercase tracking-wider font-medium mb-2">Rejected</h3>
-          <div className="relative h-8">
-            <p className="text-3xl font-extrabold">{rejectedRequests}</p>
-          </div>
+          <p className="text-3xl font-extrabold">{rejectedRequests}</p>
         </motion.div>
       </div>
 
@@ -113,13 +124,13 @@ export default function HRLeaveRequestsPage() {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={handleOpenCreateModal}
+            onClick={() => openModal(<CreateLeaveRequestModal onClose={closeModal} />)}
             className="px-4 py-2 bg-gradient-to-r from-accent-cyan to-accent-purple text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all"
           >
             + Create Request
           </motion.button>
         </div>
-        <HRLeaveRequestTable requests={filteredRequests} />
+        <HRLeaveRequestTable requests={filteredRequests} staff={staff} />
       </div>
     </div>
   );
