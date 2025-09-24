@@ -5,13 +5,11 @@ interface HRAttendanceFiltersProps {
   filters: {
     department: string;
     date: string;
-    status: string;
     search: string;
   };
   setFilters: React.Dispatch<React.SetStateAction<{
     department: string;
     date: string;
-    status: string;
     search: string;
   }>>;
 }
@@ -44,19 +42,7 @@ export function HRAttendanceFilters({ filters, setFilters }: HRAttendanceFilters
             className="w-full px-4 py-3 bg-surface-card border border-default rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium mb-2 text-secondary">Status</label>
-          <select
-            value={filters.status}
-            onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-            className="w-full px-4 py-3 bg-surface-card border border-default rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
-          >
-            <option value="all">All Status</option>
-            <option value="present">Present</option>
-            <option value="late">Late</option>
-            <option value="absent">Absent</option>
-          </select>
-        </div>
+        
         <div className="lg:col-span-2">
           <label className="block text-sm font-medium mb-2 text-secondary">Search</label>
           <div className="relative">

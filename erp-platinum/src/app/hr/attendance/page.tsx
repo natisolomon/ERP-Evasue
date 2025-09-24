@@ -1,54 +1,63 @@
 // src/app/hr/attendance/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '@/store';
+import { fetchStaff } from '../../../store/staffSlice';
+import { fetchAttendance } from '@/store/AttendanceSlice';
 import { HRAttendanceTable } from '@/components/hr/attendance/HRAttendanceTable';
 import { HRAttendanceFilters } from '@/components/hr/attendance/HRAttendanceFilters';
 import { HRAttendanceChart } from '@/components/hr/attendance/HRAttendanceChart';
 import { RecordAttendanceModal } from '@/components/hr/attendance/modals/RecordAttendanceModal';
 import { useModal } from '@/components/layout/ModalProvider';
-import { mockStaff } from '@/lib/hrUserData';
 
 export default function HRAttendancePage() {
+  const dispatch = useDispatch<AppDispatch>();
+  const { staff, loading: staffLoading } = useSelector((state: RootState) => state.staff);
+  const { records: attendances, loading: attendanceLoading } = useSelector((state: RootState) => state.attendance);
+
   const [filters, setFilters] = useState({
     department: 'all',
     date: new Date().toISOString().split('T')[0],
-    status: 'all',
     search: '',
   });
 
-  const [staff, setStaff] = useState(mockStaff);
+  // Fetch data on mount
+  useEffect(() => {
+    dispatch(fetchStaff());
+    dispatch(fetchAttendance());
+  }, [dispatch]);
 
-  const filteredStaff = staff.filter(member => {
-    if (filters.department !== 'all' && member.department !== filters.department) return false;
-    if (filters.status !== 'all' && member.status !== filters.status) return false;
-    if (filters.search && !member.firstName.toLowerCase().includes(filters.search.toLowerCase()) && !member.lastName.toLowerCase().includes(filters.search.toLowerCase())) return false;
-    return true;
-  });
+  // Filter staff (no status filter — backend doesn't have it)
+  const filteredStaff = useMemo(() => {
+    return staff.filter(member => {
+      if (filters.department !== 'all' && member.department !== filters.department) 
+        return false;
+      if (filters.search && 
+          !member.firstName.toLowerCase().includes(filters.search.toLowerCase()) && 
+          !member.lastName.toLowerCase().includes(filters.search.toLowerCase())) 
+        return false;
+      return true;
+    });
+  }, [staff, filters]);
 
   const { openModal, closeModal } = useModal();
 
-  const handleRecordAttendance = (attendanceData: any) => {
-    console.log('Record attendance:', attendanceData);
-    // In a real app, you would update your state or API here
-  };
+  // ✅ Calculate stats from REAL attendance data
+  const todayAttendances = attendances.filter(att => 
+    att.date.split('T')[0] === filters.date
+  );
 
-  const handleOpenRecordModal = () => {
-    openModal(
-      <RecordAttendanceModal
-        onClose={closeModal}
-        onRecord={handleRecordAttendance}
-      />
-    );
-  };
+  const presentToday = todayAttendances.filter(att => att.isPresent).length;
+  const absentToday = todayAttendances.filter(att => !att.isPresent).length;
+  const totalStaff = filteredStaff.length;
+  const attendanceRate = totalStaff > 0 ? ((presentToday / totalStaff) * 100).toFixed(1) : '0.0';
 
-  // Calculate attendance stats
-  const totalStaff = staff.length;
-  const presentToday = staff.filter(s => s.attendance.present > 0).length;
-  const absentToday = staff.filter(s => s.attendance.absent > 0).length;
-  const lateToday = staff.filter(s => s.attendance.late > 0).length;
-  const attendanceRate = ((presentToday / totalStaff) * 100).toFixed(1);
+  if (staffLoading || attendanceLoading) {
+    return <div className="p-8">Loading attendance data...</div>;
+  }
 
   return (
     <div>
@@ -89,7 +98,7 @@ export default function HRAttendancePage() {
         >
           <h3 className="text-xs text-secondary uppercase tracking-wider font-medium mb-2">Late Today</h3>
           <div className="relative h-8">
-            <p className="text-3xl font-extrabold">{lateToday}</p>
+            <p className="text-3xl font-extrabold">0</p> {/* ❌ No 'late' in backend */}
           </div>
         </motion.div>
         <motion.div
@@ -105,25 +114,10 @@ export default function HRAttendancePage() {
       </div>
 
       {/* Attendance Rate */}
-      <div className="glass rounded-3xl p-6 border border-default mb-10">
-        <div className="flex justify-between items-center">
-          <div>
-            <h3 className="text-lg font-bold text-primary mb-2">Today's Attendance Rate</h3>
-            <p className="text-secondary">Percentage of staff present today</p>
-          </div>
-          <div className="text-4xl font-bold text-accent-cyan">{attendanceRate}%</div>
-        </div>
-        <div className="w-full bg-white/10 rounded-full h-4 mt-4">
-          <div 
-            className="bg-accent-cyan h-4 rounded-full transition-all duration-500" 
-            style={{ width: `${attendanceRate}%` }}
-          ></div>
-        </div>
-      </div>
 
       {/* Chart */}
       <div className="glass rounded-3xl p-6 border border-default mb-10">
-        <h3 className="text-lg font-bold mb-6">Attendance Trend (Last 6 Months)</h3>
+        <h3 className="text-lg font-bold mb-6">Attendance Trend </h3>
         <HRAttendanceChart />
       </div>
 
@@ -137,13 +131,17 @@ export default function HRAttendancePage() {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={handleOpenRecordModal}
+            onClick={() => openModal(<RecordAttendanceModal onClose={closeModal} />)}
             className="px-4 py-2 bg-gradient-to-r from-accent-cyan to-accent-purple text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all"
           >
             + Record Attendance
           </motion.button>
         </div>
-        <HRAttendanceTable staff={filteredStaff} date={filters.date} />
+        <HRAttendanceTable 
+          staffList={filteredStaff} 
+          attendances={attendances} 
+          date={filters.date} 
+        />
       </div>
     </div>
   );
