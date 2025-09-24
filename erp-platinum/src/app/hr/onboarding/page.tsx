@@ -1,51 +1,55 @@
 // src/app/hr/onboarding/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '@/store';
+import { fetchStaff } from '@/store/staffSlice';
+import { fetchOnboardings } from '@/store/OnboardingSlice';
 import { HROnboardingTable } from '@/components/hr/onboarding/HROnboardingTable';
 import { HROnboardingFilters } from '@/components/hr/onboarding/HROnboardingFilters';
 import { StartOnboardingModal } from '@/components/hr/onboarding/modals/StartOnboardingModal';
 import { useModal } from '@/components/layout/ModalProvider';
-import { mockOnboarding, mockStaff } from '@/lib/hrUserData';
 
 export default function HROnboardingPage() {
+  const dispatch = useDispatch<AppDispatch>();
+  const { staff } = useSelector((state: RootState) => state.staff);
+  const { onboardings, loading } = useSelector((state: RootState) => state.onboarding);
+
   const [filters, setFilters] = useState({
-    status: 'all',
-    department: 'all',
-    search: '',
+    staffId: 'all',
+    startDate: 'all',
+    checklistStatus: 'all',
   });
 
-  const [onboarding, setOnboarding] = useState(mockOnboarding);
+  useEffect(() => {
+    dispatch(fetchStaff());
+    dispatch(fetchOnboardings());
+  }, [dispatch]);
 
-  const filteredOnboarding = onboarding.filter(item => {
-    const staff = mockStaff.find(s => s.id === item.staffId);
-    if (filters.status !== 'all' && item.status !== filters.status) return false;
-    if (filters.department !== 'all' && staff && staff.department !== filters.department) return false;
-    if (filters.search && !item.staffName.toLowerCase().includes(filters.search.toLowerCase())) return false;
-    return true;
-  });
+  const filteredOnboarding = useMemo(() => {
+    return onboardings.filter(item => {
+      const staffMember = staff.find(s => s.id === item.staffId);
+      
+      if (filters.staffId !== 'all' && item.checklistStatus !== filters.startDate) 
+        return false;
+      
+      return true;
+    });
+  }, [onboardings, staff, filters]);
 
   const { openModal, closeModal } = useModal();
 
-  const handleStartOnboarding = (newOnboarding: any) => {
-    setOnboarding(prev => [newOnboarding, ...prev]);
-  };
+  // ✅ Stats from real data
+  const totalOnboarding = onboardings.length;
+  const pendingOnboarding = onboardings.filter(o => o.checklistStatus === 'Not Started').length;
+  const inProgressOnboarding = onboardings.filter(o => o.checklistStatus === 'In Progress').length;
+  const completedOnboarding = onboardings.filter(o => o.checklistStatus === 'Completed').length;
 
-  const handleOpenStartModal = () => {
-    openModal(
-      <StartOnboardingModal
-        onClose={closeModal}
-        onStart={handleStartOnboarding}
-      />
-    );
-  };
-
-  // Calculate stats
-  const totalOnboarding = onboarding.length;
-  const pendingOnboarding = onboarding.filter(o => o.status === 'pending').length;
-  const inProgressOnboarding = onboarding.filter(o => o.status === 'in_progress').length;
-  const completedOnboarding = onboarding.filter(o => o.status === 'completed').length;
+  if (loading && onboardings.length === 0) {
+    return <div className="p-8">Loading onboarding data...</div>;
+  }
 
   return (
     <div>
@@ -65,9 +69,7 @@ export default function HROnboardingPage() {
           className="glass rounded-3xl p-6 border border-default transition-all duration-500 cursor-pointer overflow-hidden hover:-translate-y-1 bg-accent-cyan/10 text-accent-cyan"
         >
           <h3 className="text-xs text-secondary uppercase tracking-wider font-medium mb-2">Total Onboarding</h3>
-          <div className="relative h-8">
-            <p className="text-3xl font-extrabold">{totalOnboarding}</p>
-          </div>
+          <p className="text-3xl font-extrabold">{totalOnboarding}</p>
         </motion.div>
         <motion.div
           whileHover={{ y: -8, scale: 1.02 }}
@@ -75,9 +77,7 @@ export default function HROnboardingPage() {
           className="glass rounded-3xl p-6 border border-default transition-all duration-500 cursor-pointer overflow-hidden hover:-translate-y-1 bg-status-warning/10 text-status-warning"
         >
           <h3 className="text-xs text-secondary uppercase tracking-wider font-medium mb-2">Pending</h3>
-          <div className="relative h-8">
-            <p className="text-3xl font-extrabold">{pendingOnboarding}</p>
-          </div>
+          <p className="text-3xl font-extrabold">{pendingOnboarding}</p>
         </motion.div>
         <motion.div
           whileHover={{ y: -8, scale: 1.02 }}
@@ -85,9 +85,7 @@ export default function HROnboardingPage() {
           className="glass rounded-3xl p-6 border border-default transition-all duration-500 cursor-pointer overflow-hidden hover:-translate-y-1 bg-accent-purple/10 text-accent-purple"
         >
           <h3 className="text-xs text-secondary uppercase tracking-wider font-medium mb-2">In Progress</h3>
-          <div className="relative h-8">
-            <p className="text-3xl font-extrabold">{inProgressOnboarding}</p>
-          </div>
+          <p className="text-3xl font-extrabold">{inProgressOnboarding}</p>
         </motion.div>
         <motion.div
           whileHover={{ y: -8, scale: 1.02 }}
@@ -95,9 +93,7 @@ export default function HROnboardingPage() {
           className="glass rounded-3xl p-6 border border-default transition-all duration-500 cursor-pointer overflow-hidden hover:-translate-y-1 bg-accent-success/10 text-accent-success"
         >
           <h3 className="text-xs text-secondary uppercase tracking-wider font-medium mb-2">Completed</h3>
-          <div className="relative h-8">
-            <p className="text-3xl font-extrabold">{completedOnboarding}</p>
-          </div>
+          <p className="text-3xl font-extrabold">{completedOnboarding}</p>
         </motion.div>
       </div>
 
@@ -111,13 +107,13 @@ export default function HROnboardingPage() {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={handleOpenStartModal}
+            onClick={() => openModal(<StartOnboardingModal onClose={closeModal} />)}
             className="px-4 py-2 bg-gradient-to-r from-accent-cyan to-accent-purple text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all"
           >
             + Start Onboarding
           </motion.button>
         </div>
-        <HROnboardingTable onboarding={filteredOnboarding} />
+        <HROnboardingTable onboarding={filteredOnboarding} staff={staff} />
       </div>
     </div>
   );

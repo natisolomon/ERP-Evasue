@@ -1,17 +1,20 @@
-// src/components/hr/onboarding/HROnboardingModal/DeleteOnboardingModal.tsx
 'use client';
 
 import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Trash2, GraduationCap } from 'lucide-react';
-import { HROnboarding } from '@/lib/hrUserData';
+import { X, Trash2 } from 'lucide-react';
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '@/store';
+import { deleteOnboarding, Onboarding } from '@/store/OnboardingSlice';
+import { Staff } from "@/store/staffSlice";
 
 interface DeleteOnboardingModalProps {
-  onboarding: HROnboarding;
-  onClose: () => void;
+    onboarding: Onboarding;
+    staff: Staff;
+    onClose: () => void;
 }
 
-export function DeleteOnboardingModal({ onboarding, onClose }: DeleteOnboardingModalProps) {
+export function DeleteOnboardingModal({ onboarding, staff, onClose }: DeleteOnboardingModalProps) {
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -20,9 +23,15 @@ export function DeleteOnboardingModal({ onboarding, onClose }: DeleteOnboardingM
     return () => window.removeEventListener('keydown', handleEscape);
   }, [onClose]);
 
-  const handleDelete = () => {
-    console.log('Delete onboarding:', onboarding.id);
-    onClose();
+  const dispatch = useDispatch<AppDispatch>();
+
+  const handleDelete = async () => {
+    try {
+      await dispatch(deleteOnboarding(onboarding.id)).unwrap();
+      onClose();
+    } catch (err) {
+      alert('Failed to delete onboarding record.');
+    }
   };
 
   return (
@@ -49,40 +58,41 @@ export function DeleteOnboardingModal({ onboarding, onClose }: DeleteOnboardingM
             <X size={24} />
           </button>
 
-            <div className="text-center py-8">
-              <div className="w-20 h-20 bg-status-danger/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Trash2 className="text-status-danger" size={40} />
-              </div>
-              <h2 className="text-3xl font-bold text-primary mb-4">Delete Onboarding?</h2>
-              <p className="text-secondary mb-6 text-lg">
-                Are you sure you want to permanently delete this onboarding record?
-                <br />
-                <span className="font-medium text-primary block mt-2">{onboarding.staffName}</span>
-                <span className="text-sm text-secondary block mt-1">Start Date: {onboarding.startDate}</span>
-              </p>
-              <p className="text-status-danger text-sm font-medium">
-                ⚠️ This action cannot be undone.
-              </p>
+          <div className="text-center py-8">
+            <div className="w-20 h-20 bg-status-danger/20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Trash2 className="text-status-danger" size={40} />
             </div>
+            <h2 className="text-3xl font-bold text-primary mb-4">Delete Onboarding?</h2>
+            <p className="text-secondary mb-6 text-lg">
+              Are you sure you want to permanently delete this onboarding record?
+              <br />
+              <span className="font-medium text-primary block mt-2">
+                {staff.firstName} {staff.lastName}
+              </span>
+            </p>
+            <p className="text-status-danger text-sm font-medium">
+              ⚠️ This action cannot be undone.
+            </p>
+          </div>
 
-            <div className="flex flex-col sm:flex-row gap-4">
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={handleDelete}
-                className="flex-1 px-6 py-3 bg-status-danger text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all"
-              >
-                Delete Permanently
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={onClose}
-                className="flex-1 px-6 py-3 bg-surface-hover border border-default text-secondary font-medium rounded-xl hover:bg-surface-hover/80 transition-all"
-              >
-                Cancel
-              </motion.button>
-            </div>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={handleDelete}
+              className="flex-1 px-6 py-3 bg-status-danger text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all"
+            >
+              Delete Permanently
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={onClose}
+              className="flex-1 px-6 py-3 bg-surface-hover border border-default text-secondary font-medium rounded-xl hover:bg-surface-hover/80 transition-all"
+            >
+              Cancel
+            </motion.button>
+          </div>
         </motion.div>
       </motion.div>
     </AnimatePresence>

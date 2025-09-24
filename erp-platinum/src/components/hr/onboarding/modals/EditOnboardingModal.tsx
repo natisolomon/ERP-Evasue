@@ -1,25 +1,29 @@
-// src/components/hr/onboarding/HROnboardingModal/EditOnboardingModal.tsx
+// src/components/hr/onboarding/modals/EditOnboardingModal.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, GraduationCap,  FileText } from 'lucide-react';
-import { HROnboarding } from '@/lib/hrUserData';
+import { X, GraduationCap, Loader2 } from 'lucide-react';
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '@/store';
+import { Onboarding } from '@/store/OnboardingSlice';
+import { Staff } from '@/store/staffSlice';
+import { updateOnboarding } from '@/store/OnboardingSlice';
 
 interface EditOnboardingModalProps {
-  onboarding: HROnboarding;
+  onboarding: Onboarding;
+  staff: Staff; // ✅ For displaying staff name
   onClose: () => void;
 }
 
-export function EditOnboardingModal({ onboarding, onClose }: EditOnboardingModalProps) {
-  const [formData, setFormData] = useState({
-    status: onboarding.status,
-    startDate: onboarding.startDate,
-    notes: onboarding.notes || '',
-  });
+export function EditOnboardingModal({ onboarding, staff, onClose }: EditOnboardingModalProps) {
+  const dispatch = useDispatch<AppDispatch>();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const [tasks, setTasks] = useState(onboarding.tasks);
-  const [documents, setDocuments] = useState(onboarding.documents);
+  const [formData, setFormData] = useState({
+    startDate: onboarding.startDate.split('T')[0], // Convert ISO to date string
+    checklistStatus: onboarding.checklistStatus, // "Not Started", "In Progress", "Completed"
+  });
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -29,55 +33,43 @@ export function EditOnboardingModal({ onboarding, onClose }: EditOnboardingModal
     return () => window.removeEventListener('keydown', handleEscape);
   }, [onClose]);
 
-  const handleAddTask = () => {
-    setTasks([...tasks, { name: '', completed: false, dueDate: new Date().toISOString().split('T')[0], assignedTo: '' }]);
-  };
-
-  const handleRemoveTask = (index: number) => {
-    if (tasks.length > 1) {
-      setTasks(tasks.filter((_, i) => i !== index));
-    }
-  };
-
-  const handleTaskChange = (index: number, field: string, value: any) => {
-    const newTasks = [...tasks];
-    newTasks[index] = { ...newTasks[index], [field]: value };
-    setTasks(newTasks);
-  };
-
-  const handleAddDocument = () => {
-    setDocuments([...documents, '']);
-  };
-
-  const handleRemoveDocument = (index: number) => {
-    if (documents.length > 1) {
-      setDocuments(documents.filter((_, i) => i !== index));
-    }
-  };
-
-  const handleDocumentChange = (index: number, value: string) => {
-    const newDocuments = [...documents];
-    newDocuments[index] = value;
-    setDocuments(newDocuments);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.startDate) {
-      alert('Please fill in all required fields');
+      alert('Please set a start date');
       return;
     }
 
-    const updatedOnboarding = {
-      ...onboarding,
-      ...formData,
-      tasks: tasks,
-      documents: documents.filter(doc => doc.trim() !== ''),
-    };
+    setIsLoading(true);
 
-    console.log('Update onboarding:', updatedOnboarding);
-    onClose();
+    try {
+      // ✅ Send ONLY backend-supported fields
+      await dispatch(
+        updateOnboarding({
+          id: onboarding.id,
+          staffId: onboarding.staffId,
+          startDate: formData.startDate,
+          checklistStatus: formData.checklistStatus,
+        })
+      ).unwrap();
+
+      onClose();
+    } catch (err) {
+      console.error('Failed to update onboarding:', err);
+      alert('Failed to update onboarding. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Format date for display
+  const formatDate = (isoDate: string) => {
+    return new Date(isoDate).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
   return (
@@ -93,11 +85,12 @@ export function EditOnboardingModal({ onboarding, onClose }: EditOnboardingModal
           initial={{ scale: 0.92, y: 20 }}
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.92, y: 20 }}
-          className="bg-surface-card rounded-3xl p-6 md:p-8 w-full max-w-4xl lg:max-w-5xl shadow-2xl border border-white/10 relative max-h-[90vh] flex flex-col"
+          className="bg-surface-card rounded-3xl p-6 md:p-8 w-full max-w-2xl lg:max-w-3xl shadow-2xl border border-white/10 relative max-h-[90vh] flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
           <button
             onClick={onClose}
+            disabled={isLoading}
             className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/10 transition-colors text-secondary z-10"
             aria-label="Close modal"
           >
@@ -111,190 +104,80 @@ export function EditOnboardingModal({ onboarding, onClose }: EditOnboardingModal
             <h2 className="text-3xl font-bold bg-gradient-to-r from-accent-cyan to-accent-purple bg-clip-text text-transparent">
               Edit Onboarding
             </h2>
-            <p className="text-secondary mt-2">Update the details for {onboarding.staffName}'s onboarding</p>
+            <p className="text-secondary mt-2">
+              Update the details for {staff ? `${staff.firstName} ${staff.lastName}` : 'this staff member'}'s onboarding
+            </p>
           </div>
 
-            <div className="flex-1 overflow-y-auto pr-2">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Status & Start Date */}
-                <div className="glass p-6 rounded-2xl mb-6">
-                  <h3 className="text-lg font-bold text-primary mb-4">Basic Information</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium mb-2 text-secondary">Status *</label>
-                      <select
-                        value={formData.status}
-                        onChange={(e) => setFormData({ ...formData, status: e.target.value as 'pending' | 'in_progress' | 'completed' })}
-                        className="w-full px-4 py-3 bg-surface-hover border border-default rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
-                        required
-                      >
-                        <option value="pending">Pending</option>
-                        <option value="in_progress">In Progress</option>
-                        <option value="completed">Completed</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2 text-secondary">Start Date *</label>
-                      <input
-                        type="date"
-                        value={formData.startDate}
-                        onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                        className="w-full px-4 py-3 bg-surface-hover border border-default rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Onboarding Tasks */}
-                <div className="glass p-6 rounded-2xl mb-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-bold text-primary">Onboarding Tasks</h3>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      type="button"
-                      onClick={handleAddTask}
-                      className="px-3 py-1 bg-accent-cyan/20 text-accent-cyan rounded-lg font-medium text-sm hover:bg-accent-cyan/30 transition-all"
+          <div className="flex-1 overflow-y-auto pr-2">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Status & Start Date */}
+              <div className="glass p-6 rounded-2xl">
+                <h3 className="text-lg font-bold text-primary mb-4">Basic Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-secondary">Status *</label>
+                    <select
+                      value={formData.checklistStatus}
+                      onChange={(e) => setFormData({ ...formData, checklistStatus: e.target.value as 'Not Started' | 'In Progress' | 'Completed' })}
+                      className="w-full px-4 py-3 bg-surface-hover border border-default rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
+                      required
+                      disabled={isLoading}
                     >
-                      + Add Task
-                    </motion.button>
+                      <option value="Not Started">Not Started</option>
+                      <option value="In Progress">In Progress</option>
+                      <option value="Completed">Completed</option>
+                    </select>
                   </div>
-                  
-                  <div className="space-y-4">
-                    {tasks.map((task, index) => (
-                      <div key={index} className="grid grid-cols-12 gap-4 items-end p-4 bg-surface-hover rounded-xl">
-                        <div className="col-span-5">
-                          <label className="block text-sm font-medium mb-2 text-secondary">Task Name *</label>
-                          <input
-                            type="text"
-                            value={task.name}
-                            onChange={(e) => handleTaskChange(index, 'name', e.target.value)}
-                            placeholder="e.g. Complete HR paperwork"
-                            className="w-full px-3 py-2 bg-surface-card border border-default rounded-lg text-primary focus:outline-none focus:ring-1 focus:ring-accent-cyan/30 transition-all"
-                            required
-                          />
-                        </div>
-                        <div className="col-span-2">
-                          <label className="block text-sm font-medium mb-2 text-secondary">Due Date</label>
-                          <input
-                            type="date"
-                            value={task.dueDate}
-                            onChange={(e) => handleTaskChange(index, 'dueDate', e.target.value)}
-                            className="w-full px-3 py-2 bg-surface-card border border-default rounded-lg text-primary focus:outline-none focus:ring-1 focus:ring-accent-cyan/30 transition-all"
-                          />
-                        </div>
-                        <div className="col-span-3">
-                          <label className="block text-sm font-medium mb-2 text-secondary">Assigned To</label>
-                          <input
-                            type="text"
-                            value={task.assignedTo}
-                            onChange={(e) => handleTaskChange(index, 'assignedTo', e.target.value)}
-                            placeholder="e.g. HR Department"
-                            className="w-full px-3 py-2 bg-surface-card border border-default rounded-lg text-primary focus:outline-none focus:ring-1 focus:ring-accent-cyan/30 transition-all"
-                          />
-                        </div>
-                        <div className="col-span-1">
-                          <label className="block text-sm font-medium mb-2 text-secondary">Status</label>
-                          <div className="flex items-center justify-center">
-                            <input
-                              type="checkbox"
-                              checked={task.completed}
-                              onChange={(e) => handleTaskChange(index, 'completed', e.target.checked)}
-                              className="w-5 h-5 text-accent-cyan border-default rounded focus:ring-accent-cyan/50"
-                            />
-                          </div>
-                        </div>
-                        <div className="col-span-1 flex items-end">
-                          {tasks.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveTask(index)}
-                              className="text-status-danger hover:underline text-sm"
-                            >
-                              Remove
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-secondary">Start Date *</label>
+                    <input
+                      type="date"
+                      value={formData.startDate}
+                      onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                      className="w-full px-4 py-3 bg-surface-hover border border-default rounded-xl text-primary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all"
+                      required
+                      disabled={isLoading}
+                    />
                   </div>
                 </div>
-
-                {/* Required Documents */}
-                <div className="glass p-6 rounded-2xl mb-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-bold text-primary">Required Documents</h3>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      type="button"
-                      onClick={handleAddDocument}
-                      className="px-3 py-1 bg-accent-purple/20 text-accent-purple rounded-lg font-medium text-sm hover:bg-accent-purple/30 transition-all"
-                    >
-                      + Add Document
-                    </motion.button>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    {documents.map((document, index) => (
-                      <div key={index} className="flex items-center gap-4 p-3 bg-surface-hover rounded-lg">
-                        <FileText size={16} className="text-secondary" />
-                        <input
-                          type="text"
-                          value={document}
-                          onChange={(e) => handleDocumentChange(index, e.target.value)}
-                          placeholder="e.g. Offer Letter"
-                          className="flex-1 px-3 py-2 bg-surface-card border border-default rounded-lg text-primary focus:outline-none focus:ring-1 focus:ring-accent-cyan/30 transition-all"
-                        />
-                        {documents.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveDocument(index)}
-                            className="text-status-danger hover:underline text-sm"
-                          >
-                            Remove
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Notes */}
-                <div className="glass p-6 rounded-2xl">
-                  <h3 className="text-lg font-bold text-primary mb-4">Additional Notes</h3>
-                  <textarea
-                    value={formData.notes}
-                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    placeholder="Any special instructions or notes for this onboarding..."
-                    rows={4}
-                    className="w-full px-4 py-3 bg-surface-hover border border-default rounded-xl text-primary placeholder-secondary focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 transition-all resize-none"
-                  />
-                </div>
-              </form>
-            </div>
-
-          <div className="flex flex-col sm:flex-row gap-4 pt-6 mt-6">
+              </div>
+              <div className="flex flex-col sm:flex-row gap-4 pt-6 mt-6">
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               type="submit"
-              onClick={handleSubmit}
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-accent-cyan to-accent-purple text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all"
+              disabled={isLoading}
+              className={`flex-1 px-6 py-3 font-bold rounded-xl shadow-lg hover:shadow-xl transition-all ${
+                isLoading
+                  ? 'bg-gray-500 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-accent-cyan to-accent-purple text-white'
+              }`}
             >
-              Update Onboarding
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Updating...
+                </div>
+              ) : (
+                'Update Onboarding'
+              )}
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               type="button"
               onClick={onClose}
+              disabled={isLoading}
               className="flex-1 px-6 py-3 bg-surface-hover border border-default text-secondary font-medium rounded-xl hover:bg-surface-hover/80 transition-all"
             >
               Cancel
             </motion.button>
           </div>
+            </form>
+          </div>
+
+          
         </motion.div>
       </motion.div>
     </AnimatePresence>

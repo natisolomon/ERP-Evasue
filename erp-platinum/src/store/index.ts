@@ -1,14 +1,16 @@
 // src/store/index.ts
 import { configureStore } from '@reduxjs/toolkit';
-import staffReducer from '../store/staffSlice';          // ✅
-import attendanceReducer from '@/store/AttendanceSlice'; // ✅
-import leaveRequestReducer from '@/store/LeaveRequestSlice'; // ✅
+import staffReducer from '../store/staffSlice';          
+import attendanceReducer from '@/store/AttendanceSlice'; 
+import leaveRequestReducer from '@/store/LeaveRequestSlice'; 
+import onboardingReducer from '@/store/OnboardingSlice';
 
 export const store = configureStore({
   reducer: {
     staff: staffReducer,
     attendance: attendanceReducer,
-    leaveRequest: leaveRequestReducer, // ✅ Key matches slice name
+    leaveRequest: leaveRequestReducer, 
+    onboarding: onboardingReducer,
   },
 });
 

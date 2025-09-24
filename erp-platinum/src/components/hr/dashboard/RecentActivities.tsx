@@ -1,43 +1,60 @@
-// src/components/hr/dashboard/RecentActivities.tsx
 'use client';
 
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store';
 import { motion } from 'framer-motion';
 import { User, Calendar, FileText, Star } from 'lucide-react';
 
-const activities = [
-  {
-    id: 1,
-    type: 'staff',
-    message: 'John Doe completed onboarding',
-    time: '2 hours ago',
-    icon: User,
-  },
-  {
-    id: 2,
-    type: 'leave',
-    message: 'Jane Smith requested vacation leave',
-    time: '5 hours ago',
-    icon: Calendar,
-  },
-  {
-    id: 3,
-    type: 'review',
-    message: 'Mike Johnson received performance review',
-    time: '1 day ago',
-    icon: Star,
-  },
-  {
-    id: 4,
-    type: 'document',
-    message: 'New policy document uploaded',
-    time: '1 day ago',
-    icon: FileText,
-  },
-];
+// Helper to format time ago (simple version)
+const timeAgo = (dateString: string) => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+  if (diffHrs < 1) return 'just now';
+  if (diffHrs < 24) return `${diffHrs} hour${diffHrs > 1 ? 's' : ''} ago`;
+  const diffDays = Math.floor(diffHrs / 24);
+  return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+};
 
 export function RecentActivities() {
+  const staff = useSelector((state: RootState) => state.staff.staff);
+  const onboardings = useSelector((state: RootState) => state.onboarding.onboardings);
+  const leaveRequests = useSelector((state: RootState) => state.leaveRequest.requests);
+
+  // Example: combine recent onboarding and leave request activities
+  const activities = [
+    ...onboardings.map((o) => {
+      const s = staff.find(st => st.id === o.staffId);
+      return {
+        id: `onboarding-${o.id}`,
+        type: 'staff',
+        message: `${s ? `${s.firstName} ${s.lastName}` : 'A staff member'} completed onboarding`,
+        time: timeAgo(o.startDate),
+        icon: User,
+      };
+    }),
+    ...leaveRequests.map((l) => {
+      const s = staff.find(st => st.id === l.staffId);
+      return {
+        id: `leave-${l.id}`,
+        type: 'leave',
+        message: `${s ? `${s.firstName} ${s.lastName}` : 'A staff member'} requested ${l.reason || 'leave'}`,
+        time: timeAgo(l.startDate),
+        icon: Calendar,
+      };
+    }),
+    // Add more activity sources as needed
+  ]
+    // Sort by most recent (assuming startDate is ISO string)
+    .sort((a, b) => (new Date(b.time).getTime() - new Date(a.time).getTime()))
+    .slice(0, 8); // Show only the latest 8
+
   return (
     <div className="space-y-4">
+      {activities.length === 0 && (
+        <div className="text-secondary text-sm">No recent activities.</div>
+      )}
       {activities.map((activity) => {
         const Icon = activity.icon;
         return (
