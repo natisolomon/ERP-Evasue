@@ -202,10 +202,7 @@ export function EditStaffModal({ staff, onClose }: EditStaffModalProps) {
                   </label>
                 </div>
               </div>
-            </form>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-4 pt-6 mt-6">
+              <div className="flex flex-col sm:flex-row gap-4 pt-6 mt-6">
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
@@ -237,6 +234,10 @@ export function EditStaffModal({ staff, onClose }: EditStaffModalProps) {
               Cancel
             </motion.button>
           </div>
+            </form>
+          </div>
+
+          
         </motion.div>
       </motion.div>
     </AnimatePresence>

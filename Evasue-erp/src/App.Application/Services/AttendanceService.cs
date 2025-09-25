@@ -20,12 +20,18 @@ public class AttendanceService
 
     public async Task UpdateAsync(Attendance attendance) => await _repository.UpdateAsync(attendance);
 
-    public async Task DeleteAsync(Guid id)
+    public async Task DeleteAsync(Guid id) => await _repository.DeleteAsync(id);
+
+    public async Task<object> GetAttendanceSummary(Guid staffId)
     {
-        var existing = await _repository.GetByIdAsync(id);
-        if (existing != null)
+        var today = DateTime.UtcNow.Date;
+        var attendances = await _repository.GetByStaffIdAsync(staffId);
+
+        return new
         {
-            await _repository.DeleteAsync(id);
-        }
+            Daily = attendances.Count(a => a.Date.Date == today && a.IsPresent),
+            Weekly = attendances.Count(a => a.Date >= today.AddDays(-7) && a.IsPresent),
+            Monthly = attendances.Count(a => a.Date >= new DateTime(today.Year, today.Month, 1) && a.IsPresent)
+        };
     }
 }

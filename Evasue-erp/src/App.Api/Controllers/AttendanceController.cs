@@ -44,6 +44,8 @@ public class AttendanceController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] Attendance attendance)
     {
+        if (id != attendance.Id) return BadRequest("ID mismatch between URL and body");
+
         var existing = await _service.GetByIdAsync(id);
         if (existing == null) return NotFound();
 
@@ -51,7 +53,7 @@ public class AttendanceController : ControllerBase
         existing.Date = attendance.Date;
         existing.IsPresent = attendance.IsPresent;
 
-        await _service.AddAsync(existing); // or UpdateAsync if implemented
+        await _service.UpdateAsync(existing);
         return NoContent();
     }
 
@@ -64,5 +66,13 @@ public class AttendanceController : ControllerBase
 
         await _service.DeleteAsync(id);
         return NoContent();
+    }
+
+    // GET: api/v1/attendance/summary/{staffId}
+    [HttpGet("summary/{staffId}")]
+    public async Task<IActionResult> GetSummary(Guid staffId)
+    {
+        var summary = await _service.GetAttendanceSummary(staffId);
+        return Ok(summary);
     }
 }
