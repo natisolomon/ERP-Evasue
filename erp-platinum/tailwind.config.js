@@ -21,6 +21,8 @@ module.exports = {
         'accent-success': '#10b981',
         'status-danger': '#ef4444',
         'status-warning': '#f59e0b',
+        'status-danger': '#EF4444', // or your red color (e.g., #F87171, #DC2626)
+        'accent-success': '#10B981',
       },
     },
   },
